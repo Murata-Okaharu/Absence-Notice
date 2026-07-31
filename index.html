@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>休みの連絡 / Thông báo nghỉ học, làm</title>
+  <title>勤怠・連絡 / Liên lạc nghỉ làm / Absence Notice</title>
   <style>
     :root {
       --primary-color: #2563eb;
       --bg-color: #f8fafc;
       --card-bg: #ffffff;
       --text-color: #1e293b;
-      --border-color: #e2e8f0;
+      --border-color: #cbd5e1;
       --accent-color: #16a34a;
     }
 
@@ -24,226 +24,512 @@
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
-      padding: 16px;
+      padding: 12px;
       display: flex;
       justify-content: center;
     }
 
     .container {
       width: 100%;
-      max-width: 480px;
+      max-width: 520px;
       background: var(--card-bg);
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       padding: 20px;
     }
 
+    /* パスワード画面 */
+    .auth-screen {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .auth-screen h2 {
+      margin-bottom: 8px;
+      color: var(--primary-color);
+    }
+
+    .auth-screen p {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.2rem;
+      text-align: center;
+      letter-spacing: 2px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: white;
+      background-color: var(--primary-color);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* メインコンテンツ */
+    .main-app {
+      display: none;
+    }
+
+    .tab-menu {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px 6px;
+      background: #f1f5f9;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: #64748b;
+    }
+
+    .tab-btn.active {
+      background: var(--primary-color);
+      color: white;
+    }
+
     .header {
       text-align: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid var(--border-color);
+      margin-bottom: 20px;
     }
 
     .header h1 {
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       color: var(--primary-color);
-      margin-bottom: 4px;
     }
 
     .header p {
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #64748b;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     label {
       display: block;
       font-weight: bold;
-      margin-bottom: 8px;
-      font-size: 0.95rem;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
     }
 
     label .sub {
       display: block;
       font-weight: normal;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #64748b;
     }
 
-    input[type="text"], input[type="date"], select {
+    input[type="text"], input[type="date"], input[type="datetime-local"], select, textarea {
       width: 100%;
-      padding: 12px 14px;
-      font-size: 1rem;
+      padding: 12px;
+      font-size: 0.95rem;
       border: 2px solid var(--border-color);
-      border-radius: 10px;
+      border-radius: 8px;
       outline: none;
-      transition: border-color 0.2s;
       background-color: #fff;
     }
 
-    input:focus, select:focus {
+    input:focus, select:focus, textarea:focus {
       border-color: var(--primary-color);
     }
 
-    .radio-grid {
+    /* ラジオボタンカード */
+    .type-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
 
-    .radio-card {
+    .type-card {
       position: relative;
     }
 
-    .radio-card input[type="radio"] {
+    .type-card input[type="radio"] {
       position: absolute;
       opacity: 0;
       width: 0;
       height: 0;
     }
 
-    .radio-card label {
+    .type-card label {
       display: block;
-      padding: 12px 16px;
+      padding: 10px;
       background: #f1f5f9;
       border: 2px solid transparent;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s;
+      font-size: 0.85rem;
+      text-align: center;
       margin-bottom: 0;
     }
 
-    .radio-card input[type="radio"]:checked + label {
+    .type-card input[type="radio"]:checked + label {
       background: #eff6ff;
       border-color: var(--primary-color);
       color: var(--primary-color);
       font-weight: bold;
     }
 
-    button.submit-btn {
-      width: 100%;
-      padding: 16px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #ffffff;
-      background-color: var(--primary-color);
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      transition: background-color 0.2s;
-      margin-top: 10px;
+    /* 理由選択 */
+    .reason-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
     }
 
-    button.submit-btn:active {
-      transform: scale(0.98);
+    button.submit-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: white;
+      background-color: var(--primary-color);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 10px;
     }
 
     .success-msg {
       display: none;
       text-align: center;
-      padding: 30px 10px;
+      padding: 20px 0;
     }
 
-    .success-msg h2 {
-      color: var(--accent-color);
+    /* 閲覧画面スタイル */
+    .filter-box {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .filter-row > * {
+      flex: 1;
+    }
+
+    .list-card {
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
       margin-bottom: 10px;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .list-name {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    .list-dept {
+      font-size: 0.75rem;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 3px 8px;
+      border-radius: 12px;
+    }
+
+    .badge-approved {
+      background-color: #dcfce7;
+      color: #15803d;
+    }
+
+    .badge-pending {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .list-detail {
+      font-size: 0.85rem;
+      color: #334155;
+      line-height: 1.4;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="header">
-    <h1>休みの連絡</h1>
-    <p>Thông báo nghỉ làm / Leave Request</p>
+
+  <!-- パスワード認証画面 -->
+  <div id="authScreen" class="auth-screen">
+    <h2>パスワード入力</h2>
+    <p>Nhập mật khẩu / Enter Password</p>
+    <input type="password" id="passInput" class="auth-input" placeholder="••••••••">
+    <button onclick="checkPassword()" class="auth-btn">ログイン (Login)</button>
+    <p id="passError" style="color: red; margin-top: 10px; display: none;">パスワードが違います</p>
   </div>
 
-  <form id="leaveForm">
-    <!-- 氏名 -->
-    <div class="form-group">
-      <label>
-        1. お名前
-        <span class="sub">Họ và tên / Full Name</span>
-      </label>
-      <input type="text" id="name" name="name" placeholder="例: グエン ヴァン A" required>
+  <!-- アプリ本体 -->
+  <div id="mainApp" class="main-app">
+    <!-- タブ切り替え -->
+    <div class="tab-menu">
+      <button class="tab-btn active" onclick="switchTab('form')">勤怠送信 (Gửi)</button>
+      <button class="tab-btn" onclick="switchTab('list')">連絡一覧 (Danh sách)</button>
     </div>
 
-    <!-- 日付 -->
-    <div class="form-group">
-      <label>
-        2. 休む日
-        <span class="sub">Ngày nghỉ / Date</span>
-      </label>
-      <input type="date" id="date" name="date" required>
-    </div>
+    <!-- フォーム画面 -->
+    <div id="formTab">
+      <div class="header">
+        <h1>勤怠・連絡</h1>
+        <p>Liên lạc nghỉ làm / Absence Notice</p>
+      </div>
 
-    <!-- 工程 -->
-    <div class="form-group">
-      <label>
-        3. あなたの工程
-        <span class="sub">Công đoạn làm việc / Department</span>
-      </label>
-      <select id="department" name="department" required>
-        <option value="">-- 選んでください --</option>
-        <option value="外観検査工程">外観検査工程 (Kiểm tra)</option>
-        <option value="組立工程">組立工程 (Lắp ráp)</option>
-        <option value="梱包工程">梱包工程 (Đóng gói)</option>
-      </select>
-    </div>
+      <form id="attendanceForm">
+        <!-- 1. 氏名 -->
+        <div class="form-group">
+          <label>
+            1. お名前
+            <span class="sub">Họ và tên / Full Name</span>
+          </label>
+          <input type="text" id="name" name="name" placeholder="例: グエン ヴァン A" required>
+        </div>
 
-    <!-- 理由 -->
-    <div class="form-group">
-      <label>
-        4. 休む理由
-        <span class="sub">Lý do nghỉ / Reason</span>
-      </label>
-      <div class="radio-grid">
-        <div class="radio-card">
-          <input type="radio" id="reason1" name="reason" value="体調不良（風邪・熱など）" required>
-          <label for="reason1">① 体調不良<span class="sub">Sốt / Cảm / Ốm (Sick)</span></label>
+        <!-- 2. あなたの工程 -->
+        <div class="form-group">
+          <label>
+            2. あなたの工程
+            <span class="sub">Công đoạn làm việc / Department</span>
+          </label>
+          <select id="department" name="department" required>
+            <option value="">-- 選んでください --</option>
+            <option value="事務所">事務所 (Văn phòng)</option>
+            <option value="検査">検査 (Kiểm tra)</option>
+            <option value="ダイシング">ダイシング (Cắt)</option>
+            <option value="密閉ボックス洗浄">密閉ボックス洗浄 (Rửa thùng kín khí)</option>
+            <option value="スキャン">スキャン (Scan)</option>
+          </select>
         </div>
-        <div class="radio-card">
-          <input type="radio" id="reason2" name="reason" value="通院（病院へ行く）">
-          <label for="reason2">② 通院<span class="sub">Đi bệnh viện (Hospital)</span></label>
+
+        <!-- 3. 区分（休み・遅刻・早退など） -->
+        <div class="form-group">
+          <label>
+            3. 連絡の種類
+            <span class="sub">Loại liên lạc / Type</span>
+          </label>
+          <div class="type-grid">
+            <div class="type-card">
+              <input type="radio" id="type1" name="type" value="有給" onchange="toggleDateInput('date')" required>
+              <label for="type1">有給<span class="sub">Nghỉ phép</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="type2" name="type" value="半休" onchange="toggleDateInput('half')">
+              <label for="type2">半休<span class="sub">Nghỉ nửa ngày</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="type3" name="type" value="欠勤" onchange="toggleDateInput('date')">
+              <label for="type3">欠勤<span class="sub">Nghỉ không phép/ốm</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="type4" name="type" value="遅刻" onchange="toggleDateInput('datetime')">
+              <label for="type4">遅刻<span class="sub">Đi muộn</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="type5" name="type" value="早退" onchange="toggleDateInput('datetime')">
+              <label for="type5">早退<span class="sub">Về sớm</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="type6" name="type" value="中抜け" onchange="toggleDateInput('datetime')">
+              <label for="type6">中抜け<span class="sub">Vắng mặt giữa giờ</span></label>
+            </div>
+          </div>
         </div>
-        <div class="radio-card">
-          <input type="radio" id="reason3" name="reason" value="私用（個人的な用事）">
-          <label for="reason3">③ 私用<span class="sub">Việc riêng (Personal)</span></label>
+
+        <!-- 日時入力エリア（動的変化） -->
+        <div class="form-group" id="dateInputArea">
+          <label>
+            4. 日付・時間
+            <span class="sub">Ngày / Giờ (Date / Time)</span>
+          </label>
+
+          <!-- 通常の日付 -->
+          <div id="singleDateBlock">
+            <input type="date" id="targetDate" name="targetDate">
+          </div>
+
+          <!-- 半休用 -->
+          <div id="halfDateBlock" style="display: none;">
+            <input type="date" id="halfDate" name="halfDate" style="margin-bottom: 8px;">
+            <select id="halfAmpm" name="halfAmpm">
+              <option value="午前 (Sáng / AM)">午前 (Sáng / AM)</option>
+              <option value="午後 (Chiều / PM)">午後 (Chiều / PM)</option>
+            </select>
+          </div>
+
+          <!-- 日時用（遅刻・早退・中抜け） -->
+          <div id="dateTimeBlock" style="display: none;">
+            <input type="datetime-local" id="targetDateTime" name="targetDateTime">
+          </div>
         </div>
-        <div class="radio-card">
-          <input type="radio" id="reason4" name="reason" value="その他">
-          <label for="reason4">④ その他<span class="sub">Khác (Other)</span></label>
+
+        <!-- 5. 理由 -->
+        <div class="form-group">
+          <label>
+            5. 理由
+            <span class="sub">Lý do / Reason</span>
+          </label>
+          <div class="reason-grid">
+            <div class="type-card">
+              <input type="radio" id="reason1" name="reason" value="体調不良" onchange="toggleOtherReason(false)" required>
+              <label for="reason1" style="text-align: left;">① 体調不良 <span class="sub">Sốt / Cảm / Ốm</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="reason2" name="reason" value="通院" onchange="toggleOtherReason(false)">
+              <label for="reason2" style="text-align: left;">② 通院 <span class="sub">Đi bệnh viện</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="reason3" name="reason" value="私用" onchange="toggleOtherReason(false)">
+              <label for="reason3" style="text-align: left;">③ 私用 <span class="sub">Việc riêng</span></label>
+            </div>
+            <div class="type-card">
+              <input type="radio" id="reason4" name="reason" value="その他" onchange="toggleOtherReason(true)">
+              <label for="reason4" style="text-align: left;">④ その他 <span class="sub">Khác (Other)</span></label>
+            </div>
+          </div>
+          <div id="otherReasonBlock" style="display: none; margin-top: 8px;">
+            <textarea id="otherReasonText" name="otherReasonText" rows="2" placeholder="理由を入力してください / Nhập lý do"></textarea>
+          </div>
         </div>
+
+        <button type="submit" class="submit-btn">送信する (Gửi)</button>
+      </form>
+
+      <div id="successMessage" class="success-msg">
+        <h2 style="color: var(--accent-color);">送信完了！</h2>
+        <p>Đã gửi thành công!</p>
+        <p style="margin-top: 10px; font-size: 0.85rem; color: #64748b;">管理者に通知されました。</p>
+        <button onclick="resetForm()" class="submit-btn" style="margin-top: 15px; background: #64748b;">もう一度入力する</button>
       </div>
     </div>
 
-    <!-- 送信ボタン -->
-    <button type="submit" class="submit-btn">送信する (Gửi)</button>
-  </form>
+    <!-- 連絡一覧画面 -->
+    <div id="listTab" style="display: none;">
+      <div class="header">
+        <h1>連絡一覧・承認状況</h1>
+        <p>Danh sách & Trạng thái duyệt</p>
+      </div>
 
-  <div id="successMessage" class="success-msg">
-    <h2>送信が完了しました！</h2>
-    <p>Đã gửi thành công!</p>
-    <p style="margin-top: 15px; font-size: 0.9rem; color: #64748b;">管理者にメールで通知されました。<br>ゆっくり休んでください。</p>
+      <!-- 検索・フィルター -->
+      <div class="filter-box">
+        <div class="filter-row">
+          <input type="date" id="filterDate" onchange="filterList()">
+          <select id="filterDept" onchange="filterList()">
+            <option value="">すべての工程</option>
+            <option value="事務所">事務所</option>
+            <option value="検査">検査</option>
+            <option value="ダイシング">ダイシング</option>
+            <option value="密閉ボックス洗浄">密閉ボックス洗浄</option>
+            <option value="スキャン">スキャン</option>
+          </select>
+        </div>
+        <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer;">検索クリア (Xóa lọc)</button>
+      </div>
+
+      <!-- リスト表示エリア -->
+      <div id="recordsContainer">
+        <!-- GASからのデータがここに動的に追加されます -->
+        <p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
-  // 今日の日付を初期値にセット
-  document.getElementById('date').valueAsDate = new Date();
+  const CORRECT_PASS = "0966452121";
+  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwwE4Qx5YHPbcL6Oe3IPr5Nd24cE-HqQMM8dU1mGi4J4P5-_enT-Ou-8EH7Nj8twoIgbw/exec"; // ★GASのURLを貼り付け
 
-  // ★ここにGASで発行したWebアプリURLを貼り付けます★
-  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcJHi3CYm7944bSMVzd5UuUZbWBY4ZrbA1YxH-KMw7DXdhb3BssJuQqsirpSWeaWfQfQ/exec";
+  let allRecords = [];
 
-  document.getElementById('leaveForm').addEventListener('submit', function(e) {
+  // 今日の日付を初期値に
+  document.getElementById('targetDate').valueAsDate = new Date();
+  document.getElementById('halfDate').valueAsDate = new Date();
+
+  function checkPassword() {
+    const input = document.getElementById('passInput').value;
+    if (input === CORRECT_PASS) {
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+    } else {
+      document.getElementById('passError').style.display = 'block';
+    }
+  }
+
+  function switchTab(tab) {
+    const formTab = document.getElementById('formTab');
+    const listTab = document.getElementById('listTab');
+    const btns = document.querySelectorAll('.tab-btn');
+
+    if (tab === 'form') {
+      formTab.style.display = 'block';
+      listTab.style.display = 'none';
+      btns[0].classList.add('active');
+      btns[1].classList.remove('active');
+    } else {
+      formTab.style.display = 'none';
+      listTab.style.display = 'block';
+      btns[0].classList.remove('active');
+      btns[1].classList.add('active');
+      fetchRecords(); // リスト読み込み
+    }
+  }
+
+  function toggleDateInput(mode) {
+    document.getElementById('singleDateBlock').style.display = mode === 'date' ? 'block' : 'none';
+    document.getElementById('halfDateBlock').style.display = mode === 'half' ? 'block' : 'none';
+    document.getElementById('dateTimeBlock').style.display = mode === 'datetime' ? 'block' : 'none';
+  }
+
+  function toggleOtherReason(isOther) {
+    document.getElementById('otherReasonBlock').style.display = isOther ? 'block' : 'none';
+  }
+
+  // フォーム送信処理
+  document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
     const submitBtn = document.querySelector('.submit-btn');
     submitBtn.innerText = "送信中... (Đang gửi)";
     submitBtn.disabled = true;
@@ -255,15 +541,89 @@
       body: formData
     })
     .then(response => {
-      document.getElementById('leaveForm').style.display = 'none';
+      document.getElementById('attendanceForm').style.display = 'none';
       document.getElementById('successMessage').style.display = 'block';
     })
     .catch(error => {
-      alert("送信に失敗しました。もう一度試してください。");
+      alert("送信に失敗しました。");
       submitBtn.innerText = "送信する (Gửi)";
       submitBtn.disabled = false;
     });
   });
+
+  function resetForm() {
+    document.getElementById('attendanceForm').reset();
+    document.getElementById('attendanceForm').style.display = 'block';
+    document.getElementById('successMessage').style.display = 'none';
+    document.querySelector('.submit-btn').innerText = "送信する (Gửi)";
+    document.querySelector('.submit-btn').disabled = false;
+    toggleDateInput('date');
+    toggleOtherReason(false);
+  }
+
+  // リスト取得処理
+  function fetchRecords() {
+    const container = document.getElementById('recordsContainer');
+    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>';
+
+    fetch(GAS_WEB_APP_URL + "?action=getRecords")
+    .then(res => res.json())
+    .then(data => {
+      allRecords = data;
+      renderRecords(allRecords);
+    })
+    .catch(err => {
+      container.innerHTML = '<p style="text-align: center; color: red;">データの取得に失敗しました。</p>';
+    });
+  }
+
+  function renderRecords(records) {
+    const container = document.getElementById('recordsContainer');
+    if (records.length === 0) {
+      container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">データがありません。</p>';
+      return;
+    }
+
+    let html = '';
+    records.forEach(r => {
+      const isApproved = r.status === "承認済" || r.status === "Approved";
+      const badgeClass = isApproved ? 'badge-approved' : 'badge-pending';
+      const statusText = isApproved ? '承認済 (Đã duyệt)' : '未承認 (Chờ duyệt)';
+
+      html += `
+        <div class="list-card">
+          <div class="list-header">
+            <span class="list-name">${r.name} <span class="list-dept">${r.department}</span></span>
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </div>
+          <div class="list-detail">
+            <strong>【${r.type}】</strong> ${r.datetime}<br>
+            <strong>理由:</strong> ${r.reason}
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  function filterList() {
+    const selectedDate = document.getElementById('filterDate').value;
+    const selectedDept = document.getElementById('filterDept').value;
+
+    const filtered = allRecords.filter(r => {
+      const matchDate = !selectedDate || r.datetime.includes(selectedDate);
+      const matchDept = !selectedDept || r.department === selectedDept;
+      return matchDate && matchDept;
+    });
+
+    renderRecords(filtered);
+  }
+
+  function clearFilter() {
+    document.getElementById('filterDate').value = '';
+    document.getElementById('filterDept').value = '';
+    renderRecords(allRecords);
+  }
 </script>
 
 </body>
