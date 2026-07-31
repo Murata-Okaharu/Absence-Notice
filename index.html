@@ -38,7 +38,6 @@
       padding: 20px;
     }
 
-    /* パスワード画面 */
     .auth-screen {
       text-align: center;
       padding: 20px 0;
@@ -79,7 +78,6 @@
       cursor: pointer;
     }
 
-    /* メインコンテンツ */
     .main-app {
       display: none;
     }
@@ -156,7 +154,6 @@
       border-color: var(--primary-color);
     }
 
-    /* ラジオボタンカード */
     .type-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -193,7 +190,6 @@
       font-weight: bold;
     }
 
-    /* 理由選択 */
     .reason-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -219,7 +215,6 @@
       padding: 20px 0;
     }
 
-    /* 閲覧画面スタイル */
     .filter-box {
       background: #f1f5f9;
       padding: 12px;
@@ -305,7 +300,6 @@
 
   <!-- アプリ本体 -->
   <div id="mainApp" class="main-app">
-    <!-- タブ切り替え -->
     <div class="tab-menu">
       <button class="tab-btn active" onclick="switchTab('form')">勤怠送信 (Gửi)</button>
       <button class="tab-btn" onclick="switchTab('list')">連絡一覧 (Danh sách)</button>
@@ -319,21 +313,13 @@
       </div>
 
       <form id="attendanceForm">
-        <!-- 1. 氏名 -->
         <div class="form-group">
-          <label>
-            1. お名前
-            <span class="sub">Họ và tên / Full Name</span>
-          </label>
+          <label>1. お名前 <span class="sub">Họ và tên / Full Name</span></label>
           <input type="text" id="name" name="name" placeholder="例: グエン ヴァン A" required>
         </div>
 
-        <!-- 2. あなたの工程 -->
         <div class="form-group">
-          <label>
-            2. あなたの工程
-            <span class="sub">Công đoạn làm việc / Department</span>
-          </label>
+          <label>2. あなたの工程 <span class="sub">Công đoạn làm việc / Department</span></label>
           <select id="department" name="department" required>
             <option value="">-- 選んでください --</option>
             <option value="事務所">事務所 (Văn phòng)</option>
@@ -344,12 +330,8 @@
           </select>
         </div>
 
-        <!-- 3. 区分（休み・遅刻・早退など） -->
         <div class="form-group">
-          <label>
-            3. 連絡の種類
-            <span class="sub">Loại liên lạc / Type</span>
-          </label>
+          <label>3. 連絡の種類 <span class="sub">Loại liên lạc / Type</span></label>
           <div class="type-grid">
             <div class="type-card">
               <input type="radio" id="type1" name="type" value="有給" onchange="toggleDateInput('date')" required>
@@ -378,19 +360,13 @@
           </div>
         </div>
 
-        <!-- 日時入力エリア（動的変化） -->
         <div class="form-group" id="dateInputArea">
-          <label>
-            4. 日付・時間
-            <span class="sub">Ngày / Giờ (Date / Time)</span>
-          </label>
+          <label>4. 日付・時間 <span class="sub">Ngày / Giờ (Date / Time)</span></label>
 
-          <!-- 通常の日付 -->
           <div id="singleDateBlock">
             <input type="date" id="targetDate" name="targetDate">
           </div>
 
-          <!-- 半休用 -->
           <div id="halfDateBlock" style="display: none;">
             <input type="date" id="halfDate" name="halfDate" style="margin-bottom: 8px;">
             <select id="halfAmpm" name="halfAmpm">
@@ -399,18 +375,13 @@
             </select>
           </div>
 
-          <!-- 日時用（遅刻・早退・中抜け） -->
           <div id="dateTimeBlock" style="display: none;">
             <input type="datetime-local" id="targetDateTime" name="targetDateTime">
           </div>
         </div>
 
-        <!-- 5. 理由 -->
         <div class="form-group">
-          <label>
-            5. 理由
-            <span class="sub">Lý do / Reason</span>
-          </label>
+          <label>5. 理由 <span class="sub">Lý do / Reason</span></label>
           <div class="reason-grid">
             <div class="type-card">
               <input type="radio" id="reason1" name="reason" value="体調不良" onchange="toggleOtherReason(false)" required>
@@ -452,7 +423,6 @@
         <p>Danh sách & Trạng thái duyệt</p>
       </div>
 
-      <!-- 検索・フィルター -->
       <div class="filter-box">
         <div class="filter-row">
           <input type="date" id="filterDate" onchange="filterList()">
@@ -468,9 +438,7 @@
         <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer;">検索クリア (Xóa lọc)</button>
       </div>
 
-      <!-- リスト表示エリア -->
       <div id="recordsContainer">
-        <!-- GASからのデータがここに動的に追加されます -->
         <p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>
       </div>
     </div>
@@ -480,11 +448,10 @@
 
 <script>
   const CORRECT_PASS = "0966452121";
-  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOSs7xdJ8f2cgHmk5amrkqyOETBFjqrZB9hjb_uMclCFZps-0kOvRes1lul8odYHIa8g/exec"; // ★GASのURLを貼り付け
+  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx6KVCN8NNKmHn6IST92e9Z4u9ptXs06G-nnVR3bvclvuELAq-oYzmjZ7jE1VTY7LHZDg/exec";
 
   let allRecords = [];
 
-  // 今日の日付を初期値に
   document.getElementById('targetDate').valueAsDate = new Date();
   document.getElementById('halfDate').valueAsDate = new Date();
 
@@ -513,21 +480,21 @@
       listTab.style.display = 'block';
       btns[0].classList.remove('active');
       btns[1].classList.add('active');
-      fetchRecords(); // リスト読み込み
+      fetchRecords();
     }
   }
 
   function toggleDateInput(mode) {
-    document.getElementById('singleDateBlock').style.display = mode === 'date' ? 'block' : 'none';
-    document.getElementById('halfDateBlock').style.display = mode === 'half' ? 'block' : 'none';
-    document.getElementById('dateTimeBlock').style.display = mode === 'datetime' ? 'block' : 'none';
+    document.getElementById('singleDateBlock').style.display = (mode === 'date') ? 'block' : 'none';
+    document.getElementById('halfDateBlock').style.display = (mode === 'half') ? 'block' : 'none';
+    document.getElementById('dateTimeBlock').style.display = (mode === 'datetime') ? 'block' : 'none';
   }
 
   function toggleOtherReason(isOther) {
     document.getElementById('otherReasonBlock').style.display = isOther ? 'block' : 'none';
   }
 
-  // フォーム送信処理
+  // フォーム送信処理（no-cors対応）
   document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const submitBtn = document.querySelector('.submit-btn');
@@ -536,13 +503,12 @@
 
     const formData = new FormData(this);
 
-    // mode: 'no-cors' を追加
     fetch(GAS_WEB_APP_URL, {
       method: 'POST',
       body: formData,
       mode: 'no-cors'
     })
-    .then(response => {
+    .then(() => {
       document.getElementById('attendanceForm').style.display = 'none';
       document.getElementById('successMessage').style.display = 'block';
     })
@@ -581,7 +547,7 @@
 
   function renderRecords(records) {
     const container = document.getElementById('recordsContainer');
-    if (records.length === 0) {
+    if (!records || records.length === 0) {
       container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">データがありません。</p>';
       return;
     }
@@ -613,7 +579,7 @@
     const selectedDept = document.getElementById('filterDept').value;
 
     const filtered = allRecords.filter(r => {
-      const matchDate = !selectedDate || r.datetime.includes(selectedDate);
+      const matchDate = !selectedDate || (r.datetime && r.datetime.includes(selectedDate));
       const matchDept = !selectedDept || r.department === selectedDept;
       return matchDate && matchDept;
     });
