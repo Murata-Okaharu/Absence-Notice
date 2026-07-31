@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>休みの連絡 / Thông báo nghỉ học, làm</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --border-color: #e2e8f0;
+      --accent-color: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .header h1 {
+      font-size: 1.4rem;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    label .sub {
+      display: block;
+      font-weight: normal;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    input[type="text"], input[type="date"], select {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.2s;
+      background-color: #fff;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary-color);
+    }
+
+    .radio-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .radio-card {
+      position: relative;
+    }
+
+    .radio-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .radio-card label {
+      display: block;
+      padding: 12px 16px;
+      background: #f1f5f9;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      margin-bottom: 0;
+    }
+
+    .radio-card input[type="radio"]:checked + label {
+      background: #eff6ff;
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    button.submit-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #ffffff;
+      background-color: var(--primary-color);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: background-color 0.2s;
+      margin-top: 10px;
+    }
+
+    button.submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .success-msg {
+      display: none;
+      text-align: center;
+      padding: 30px 10px;
+    }
+
+    .success-msg h2 {
+      color: var(--accent-color);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>休みの連絡</h1>
+    <p>Thông báo nghỉ làm / Leave Request</p>
+  </div>
+
+  <form id="leaveForm">
+    <!-- 氏名 -->
+    <div class="form-group">
+      <label>
+        1. お名前
+        <span class="sub">Họ và tên / Full Name</span>
+      </label>
+      <input type="text" id="name" name="name" placeholder="例: グエン ヴァン A" required>
+    </div>
+
+    <!-- 日付 -->
+    <div class="form-group">
+      <label>
+        2. 休む日
+        <span class="sub">Ngày nghỉ / Date</span>
+      </label>
+      <input type="date" id="date" name="date" required>
+    </div>
+
+    <!-- 工程 -->
+    <div class="form-group">
+      <label>
+        3. あなたの工程
+        <span class="sub">Công đoạn làm việc / Department</span>
+      </label>
+      <select id="department" name="department" required>
+        <option value="">-- 選んでください --</option>
+        <option value="外観検査工程">外観検査工程 (Kiểm tra)</option>
+        <option value="組立工程">組立工程 (Lắp ráp)</option>
+        <option value="梱包工程">梱包工程 (Đóng gói)</option>
+      </select>
+    </div>
+
+    <!-- 理由 -->
+    <div class="form-group">
+      <label>
+        4. 休む理由
+        <span class="sub">Lý do nghỉ / Reason</span>
+      </label>
+      <div class="radio-grid">
+        <div class="radio-card">
+          <input type="radio" id="reason1" name="reason" value="体調不良（風邪・熱など）" required>
+          <label for="reason1">① 体調不良<span class="sub">Sốt / Cảm / Ốm (Sick)</span></label>
+        </div>
+        <div class="radio-card">
+          <input type="radio" id="reason2" name="reason" value="通院（病院へ行く）">
+          <label for="reason2">② 通院<span class="sub">Đi bệnh viện (Hospital)</span></label>
+        </div>
+        <div class="radio-card">
+          <input type="radio" id="reason3" name="reason" value="私用（個人的な用事）">
+          <label for="reason3">③ 私用<span class="sub">Việc riêng (Personal)</span></label>
+        </div>
+        <div class="radio-card">
+          <input type="radio" id="reason4" name="reason" value="その他">
+          <label for="reason4">④ その他<span class="sub">Khác (Other)</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 送信ボタン -->
+    <button type="submit" class="submit-btn">送信する (Gửi)</button>
+  </form>
+
+  <div id="successMessage" class="success-msg">
+    <h2>送信が完了しました！</h2>
+    <p>Đã gửi thành công!</p>
+    <p style="margin-top: 15px; font-size: 0.9rem; color: #64748b;">管理者にメールで通知されました。<br>ゆっくり休んでください。</p>
+  </div>
+</div>
+
+<script>
+  // 今日の日付を初期値にセット
+  document.getElementById('date').valueAsDate = new Date();
+
+  // ★ここにGASで発行したWebアプリURLを貼り付けます★
+  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxcJHi3CYm7944bSMVzd5UuUZbWBY4ZrbA1YxH-KMw7DXdhb3BssJuQqsirpSWeaWfQfQ/exec";
+
+  document.getElementById('leaveForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.innerText = "送信中... (Đang gửi)";
+    submitBtn.disabled = true;
+
+    const formData = new FormData(this);
+
+    fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      document.getElementById('leaveForm').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+    })
+    .catch(error => {
+      alert("送信に失敗しました。もう一度試してください。");
+      submitBtn.innerText = "送信する (Gửi)";
+      submitBtn.disabled = false;
+    });
+  });
+</script>
+
+</body>
+</html>
