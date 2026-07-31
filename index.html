@@ -536,9 +536,11 @@
 
     const formData = new FormData(this);
 
+    // mode: 'no-cors' を追加
     fetch(GAS_WEB_APP_URL, {
       method: 'POST',
-      body: formData
+      body: formData,
+      mode: 'no-cors'
     })
     .then(response => {
       document.getElementById('attendanceForm').style.display = 'none';
