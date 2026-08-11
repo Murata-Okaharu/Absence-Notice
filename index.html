@@ -40,29 +40,41 @@
 
     .auth-screen {
       text-align: center;
-      padding: 20px 0;
+      padding: 10px 0;
     }
 
     .auth-screen h2 {
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       color: var(--primary-color);
+      font-size: 1.2rem;
     }
 
     .auth-screen p {
       font-size: 0.85rem;
       color: #64748b;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+    }
+
+    .auth-group {
+      text-align: left;
+      margin-bottom: 12px;
+    }
+
+    .auth-group label {
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      display: block;
     }
 
     .auth-input {
       width: 100%;
-      padding: 14px;
-      font-size: 1.2rem;
+      padding: 12px;
+      font-size: 1.1rem;
       text-align: center;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
       border: 2px solid var(--border-color);
-      border-radius: 10px;
-      margin-bottom: 16px;
+      border-radius: 8px;
       outline: none;
     }
 
@@ -76,6 +88,7 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      margin-top: 8px;
     }
 
     .main-app {
@@ -140,7 +153,7 @@
       color: #64748b;
     }
 
-    input[type="text"], input[type="date"], input[type="datetime-local"], select, textarea {
+    input[type="text"], input[type="password"], input[type="date"], input[type="datetime-local"], select, textarea {
       width: 100%;
       padding: 12px;
       font-size: 0.95rem;
@@ -289,13 +302,23 @@
 
 <div class="container">
 
-  <!-- パスワード認証画面 -->
+  <!-- 本人確認画面 -->
   <div id="authScreen" class="auth-screen">
-    <h2>パスワード入力</h2>
-    <p>Nhập mật khẩu / Enter Password</p>
-    <input type="password" id="passInput" class="auth-input" placeholder="••••••••">
-    <button onclick="checkPassword()" class="auth-btn">ログイン (Login)</button>
-    <p id="passError" style="color: red; margin-top: 10px; display: none;">パスワードが違います</p>
+    <h2>本人確認</h2>
+    <p>Xác nhận / Authentication</p>
+    
+    <div class="auth-group">
+      <label>社員ID <span style="font-weight:normal; color:#64748b;">(Mã số nhân viên)</span></label>
+      <input type="text" id="empIdInput" class="auth-input" placeholder="例: 1001">
+    </div>
+
+    <div class="auth-group">
+      <label>暗証番号 <span style="font-weight:normal; color:#64748b;">(月日4桁 例: 0912)</span></label>
+      <input type="password" id="passInput" class="auth-input" maxlength="4" placeholder="••••">
+    </div>
+
+    <button onclick="checkAuth()" id="loginBtn" class="auth-btn">ログイン (Login)</button>
+    <p id="passError" style="color: red; margin-top: 10px; display: none;"></p>
   </div>
 
   <!-- アプリ本体 -->
@@ -315,7 +338,8 @@
       <form id="attendanceForm">
         <div class="form-group">
           <label>1. お名前 <span class="sub">Họ và tên / Full Name</span></label>
-          <input type="text" id="name" name="name" placeholder="例: グエン ヴァン A" required>
+          <!-- 認証成功時に自動入力＆編集不可 -->
+          <input type="text" id="name" name="name" readonly style="background-color: #f1f5f9;" required>
         </div>
 
         <div class="form-group">
@@ -425,6 +449,7 @@
 
       <div class="filter-box">
         <div class="filter-row">
+          <!-- 有給取得日（指定日）で絞り込み -->
           <input type="date" id="filterDate" onchange="filterList()">
           <select id="filterDept" onchange="filterList()">
             <option value="">すべての工程</option>
@@ -447,25 +472,51 @@
 </div>
 
 <script>
-  const CORRECT_PASS = "0966452121";
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
-
-  // メール送信先のアドレス
-  const MAIL_TO = "chau@muratasangyo.com";
 
   let allRecords = [];
 
   document.getElementById('targetDate').valueAsDate = new Date();
   document.getElementById('halfDate').valueAsDate = new Date();
 
-  function checkPassword() {
-    const input = document.getElementById('passInput').value;
-    if (input === CORRECT_PASS) {
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-    } else {
-      document.getElementById('passError').style.display = 'block';
+  // ログイン認証（ID＋月日4桁でSheet2と照合し名前を自動取得）
+  function checkAuth() {
+    const empId = document.getElementById('empIdInput').value.trim();
+    const dob = document.getElementById('passInput').value.trim();
+    const errEl = document.getElementById('passError');
+    const loginBtn = document.getElementById('loginBtn');
+
+    if (!empId || !dob) {
+      errEl.innerText = "IDと暗証番号（月日）を入力してください";
+      errEl.style.display = 'block';
+      return;
     }
+
+    loginBtn.disabled = true;
+    loginBtn.innerText = "確認中...";
+    errEl.style.display = 'none';
+
+    fetch(`${GAS_WEB_APP_URL}?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        // 名前欄へ自動代入
+        document.getElementById('name').value = data.userName;
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+      } else {
+        errEl.innerText = "IDまたは暗証番号（月日）が違います";
+        errEl.style.display = 'block';
+        loginBtn.disabled = false;
+        loginBtn.innerText = "ログイン (Login)";
+      }
+    })
+    .catch(err => {
+      errEl.innerText = "通信エラーが発生しました";
+      errEl.style.display = 'block';
+      loginBtn.disabled = false;
+      loginBtn.innerText = "ログイン (Login)";
+    });
   }
 
   function switchTab(tab) {
@@ -495,21 +546,52 @@
 
   function toggleOtherReason(isOther) {
     document.getElementById('otherReasonBlock').style.display = isOther ? 'block' : 'none';
+    if (!isOther) {
+      document.getElementById('otherReasonText').value = '';
+    }
   }
 
-  // フォーム送信処理（GASのみで保存＆メール送信）
+  // フォーム送信処理
   document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const submitBtn = document.querySelector('.submit-btn');
     submitBtn.innerText = "送信中... (Đang gửi)";
     submitBtn.disabled = true;
 
-    const formData = new FormData(this);
+    const name = document.getElementById('name').value;
+    const department = document.getElementById('department').value;
+    const type = document.querySelector('input[name="type"]:checked')?.value || '';
+    
+    let datetime = '';
+    if (type === '有給' || type === '欠勤') {
+      datetime = document.getElementById('targetDate').value;
+    } else if (type === '半休') {
+      const hDate = document.getElementById('halfDate').value;
+      const hAmpm = document.getElementById('halfAmpm').value;
+      datetime = `${hDate} ${hAmpm}`;
+    } else {
+      datetime = document.getElementById('targetDateTime').value;
+    }
 
-    // GASのみに送信
+    let reason = document.querySelector('input[name="reason"]:checked')?.value || '';
+    if (reason === 'その他') {
+      const otherDetail = document.getElementById('otherReasonText').value;
+      reason = otherDetail ? `その他: ${otherDetail}` : 'その他';
+    }
+
+    const payload = new URLSearchParams();
+    payload.append('name', name);
+    payload.append('department', department);
+    payload.append('type', type);
+    payload.append('datetime', datetime);
+    payload.append('reason', reason);
+
     fetch(GAS_WEB_APP_URL, {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: payload.toString()
     })
     .then(response => {
       document.getElementById('attendanceForm').style.display = 'none';
@@ -521,7 +603,7 @@
       submitBtn.disabled = false;
     });
   });
-  
+
   function resetForm() {
     document.getElementById('attendanceForm').reset();
     document.getElementById('attendanceForm').style.display = 'block';
@@ -532,7 +614,7 @@
     toggleOtherReason(false);
   }
 
-  // リスト取得処理
+  // 一覧取得処理
   function fetchRecords() {
     const container = document.getElementById('recordsContainer');
     container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>';
@@ -577,12 +659,12 @@
     container.innerHTML = html;
   }
 
+  // 「有給取得日（指定日）」に基づく絞り込み
   function filterList() {
-    const selectedDate = document.getElementById('filterDate').value; // 例: "2026-08-11"
+    const selectedDate = document.getElementById('filterDate').value;
     const selectedDept = document.getElementById('filterDept').value;
 
     const filtered = allRecords.filter(r => {
-      // 日付の表記揺れ（/ と -）を統一して判定
       let matchDate = true;
       if (selectedDate && r.datetime) {
         const formattedTargetDate = r.datetime.replace(/\//g, '-');
