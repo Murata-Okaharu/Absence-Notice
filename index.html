@@ -497,7 +497,7 @@
     document.getElementById('otherReasonBlock').style.display = isOther ? 'block' : 'none';
   }
 
-  // フォーム送信処理（GAS保存 + FormSubmitメール送信）
+  // フォーム送信処理（GASのみで保存＆メール送信）
   document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const submitBtn = document.querySelector('.submit-btn');
@@ -506,52 +506,22 @@
 
     const formData = new FormData(this);
 
-    // 1. GASへのデータ保存（スプレッドシート用）
-    const fetchGAS = fetch(GAS_WEB_APP_URL, {
+    // GASのみに送信
+    fetch(GAS_WEB_APP_URL, {
       method: 'POST',
-      body: formData,
-      mode: 'no-cors'
+      body: formData
+    })
+    .then(response => {
+      document.getElementById('attendanceForm').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+    })
+    .catch(error => {
+      alert("送信に失敗しました。");
+      submitBtn.innerText = "送信する (Gửi)";
+      submitBtn.disabled = false;
     });
-
-    // 2. FormSubmitを使ったメール送信処理
-    const name = document.getElementById('name').value;
-    const dept = document.getElementById('department').value;
-    const type = document.querySelector('input[name="type"]:checked')?.value || "";
-    let reason = document.querySelector('input[name="reason"]:checked')?.value || "";
-    if (reason === "その他") {
-      reason += ": " + document.getElementById('otherReasonText').value;
-    }
-
-    const mailData = {
-      _subject: `【勤怠連絡】${dept} - ${name}さん (${type})`,
-      "氏名": name,
-      "工程": dept,
-      "連絡種別": type,
-      "理由": reason
-    };
-
-    const fetchMail = fetch(`https://formsubmit.co/ajax/${MAIL_TO}`, {
-      method: "POST",
-      headers: { 
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(mailData)
-    });
-
-    // 両方の処理を実行
-    Promise.allSettled([fetchGAS, fetchMail])
-      .then(() => {
-        document.getElementById('attendanceForm').style.display = 'none';
-        document.getElementById('successMessage').style.display = 'block';
-      })
-      .catch(error => {
-        alert("送信に失敗しました。");
-        submitBtn.innerText = "送信する (Gửi)";
-        submitBtn.disabled = false;
-      });
   });
-
+  
   function resetForm() {
     document.getElementById('attendanceForm').reset();
     document.getElementById('attendanceForm').style.display = 'block';
