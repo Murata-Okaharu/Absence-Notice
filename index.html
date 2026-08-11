@@ -578,11 +578,17 @@
   }
 
   function filterList() {
-    const selectedDate = document.getElementById('filterDate').value;
+    const selectedDate = document.getElementById('filterDate').value; // 例: "2026-08-11"
     const selectedDept = document.getElementById('filterDept').value;
 
     const filtered = allRecords.filter(r => {
-      const matchDate = !selectedDate || (r.datetime && r.datetime.includes(selectedDate));
+      // 日付の表記揺れ（/ と -）を統一して判定
+      let matchDate = true;
+      if (selectedDate && r.datetime) {
+        const formattedTargetDate = r.datetime.replace(/\//g, '-');
+        matchDate = formattedTargetDate.includes(selectedDate);
+      }
+
       const matchDept = !selectedDept || r.department === selectedDept;
       return matchDate && matchDept;
     });
