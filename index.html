@@ -181,6 +181,16 @@
       border-color: var(--primary-color);
     }
 
+    .range-inputs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .range-inputs input {
+      flex: 1;
+    }
+
     .type-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -415,8 +425,14 @@
         <div class="form-group" id="dateInputArea">
           <label data-i18n="lbl4Date">4. 日付・時間</label>
 
+          <!-- 期間指定（有給・欠勤用） -->
           <div id="singleDateBlock">
-            <input type="date" id="targetDate" name="targetDate">
+            <div class="range-inputs">
+              <input type="date" id="startDate" name="startDate">
+              <span id="rangeSeparator">〜</span>
+              <input type="date" id="endDate" name="endDate" placeholder="終了日（任意）">
+            </div>
+            <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;" data-i18n="hintDateRange">※1日のみの場合は終了日を空欄にしてください</span>
           </div>
 
           <div id="halfDateBlock" style="display: none;">
@@ -533,6 +549,7 @@
       typeEarly: "早退",
       typeOut: "中抜け",
       lbl4Date: "4. 日付・時間",
+      hintDateRange: "※1日のみの場合は終了日を空欄にしてください",
       optAm: "午前 (AM)",
       optPm: "午後 (PM)",
       lbl5Reason: "5. 理由",
@@ -589,6 +606,7 @@
       typeEarly: "Về sớm",
       typeOut: "Vắng giữa giờ",
       lbl4Date: "4. Ngày / Giờ",
+      hintDateRange: "※ Nếu nghỉ 1 ngày, để trống ngày kết thúc",
       optAm: "Sáng (AM)",
       optPm: "Chiều (PM)",
       lbl5Reason: "5. Lý do",
@@ -645,6 +663,7 @@
       typeEarly: "Early Leave",
       typeOut: "Temporary Out",
       lbl4Date: "4. Date & Time",
+      hintDateRange: "※ Leave end date blank for single-day requests",
       optAm: "Morning (AM)",
       optPm: "Afternoon (PM)",
       lbl5Reason: "5. Reason",
@@ -674,7 +693,7 @@
     }
   };
 
-  document.getElementById('targetDate').valueAsDate = new Date();
+  document.getElementById('startDate').valueAsDate = new Date();
   document.getElementById('halfDate').valueAsDate = new Date();
 
   function setLanguage(lang) {
@@ -780,16 +799,13 @@
     // 区分に応じて表示するメッセージを切り替え
     let confirmMsg = "";
     if (type === '遅刻' || type === '早退' || type === '中抜け') {
-      // 打刻忘れと誤り（再送信）の両方を表示
       confirmMsg = i18nData[currentLang].alertTimecard;
     } else {
-      // 誤り（再送信）の案内のみを表示
       confirmMsg = i18nData[currentLang].alertResend;
     }
 
-    // 確認ダイアログを表示
     if (!confirm(confirmMsg)) {
-      return; // キャンセルを押した場合は送信処理を中止
+      return;
     }
 
     const submitBtn = document.getElementById('submitBtn');
@@ -801,7 +817,13 @@
     
     let datetime = '';
     if (type === '有給' || type === '欠勤') {
-      datetime = document.getElementById('targetDate').value;
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      if (endDate && endDate !== startDate) {
+        datetime = `${startDate} 〜 ${endDate}`;
+      } else {
+        datetime = startDate;
+      }
     } else if (type === '半休') {
       const hDate = document.getElementById('halfDate').value;
       const hAmpm = document.getElementById('halfAmpm').value;
@@ -849,6 +871,7 @@
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.innerText = i18nData[currentLang].btnSubmit;
     submitBtn.disabled = false;
+    document.getElementById('startDate').valueAsDate = new Date();
     toggleDateInput('date');
     toggleOtherReason(false);
   }
@@ -880,7 +903,6 @@
       const mgrStatus = String(r.managerStatus || '').trim();
       const facStatus = String(r.factoryStatus || '').trim();
 
-      // 「未」が含まれておらず、かつ「承認」が含まれている場合のみ OK（承認済）とする
       const isMgrApproved = !mgrStatus.includes("未") && !mgrStatus.includes("Pending") && (mgrStatus.includes("承認") || mgrStatus.includes("Approved"));
       const isFacApproved = !facStatus.includes("未") && !facStatus.includes("Pending") && (facStatus.includes("承認") || facStatus.includes("Approved"));
 
