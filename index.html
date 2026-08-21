@@ -256,7 +256,7 @@
     .list-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       margin-bottom: 6px;
       padding-bottom: 6px;
       border-bottom: 1px dashed var(--border-color);
@@ -272,13 +272,22 @@
       background: #e2e8f0;
       padding: 2px 6px;
       border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    .badge-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
     }
 
     .badge {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: bold;
-      padding: 3px 8px;
-      border-radius: 12px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      white-space: nowrap;
     }
 
     .badge-approved {
@@ -338,7 +347,6 @@
       <form id="attendanceForm">
         <div class="form-group">
           <label>1. お名前 <span class="sub">Họ và tên / Full Name</span></label>
-          <!-- 認証成功時に自動入力＆編集不可 -->
           <input type="text" id="name" name="name" readonly style="background-color: #f1f5f9;" required>
         </div>
 
@@ -449,7 +457,6 @@
 
       <div class="filter-box">
         <div class="filter-row">
-          <!-- 有給取得日（指定日）で絞り込み -->
           <input type="date" id="filterDate" onchange="filterList()">
           <select id="filterDept" onchange="filterList()">
             <option value="">すべての工程</option>
@@ -472,14 +479,13 @@
 </div>
 
 <script>
-  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
+  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzoPPh09ulUocdfRIKbW3ZqlIAo8pAPa2D5-bDkpUJpJbCvCWyGHAhlytXveK-pz2b7EQ/exec";
 
   let allRecords = [];
 
   document.getElementById('targetDate').valueAsDate = new Date();
   document.getElementById('halfDate').valueAsDate = new Date();
 
-  // ログイン認証（ID＋月日4桁でSheet2と照合し名前を自動取得）
   function checkAuth() {
     const empId = document.getElementById('empIdInput').value.trim();
     const dob = document.getElementById('passInput').value.trim();
@@ -500,7 +506,6 @@
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        // 名前欄へ自動代入
         document.getElementById('name').value = data.userName;
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -551,7 +556,6 @@
     }
   }
 
-  // フォーム送信処理
   document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const submitBtn = document.querySelector('.submit-btn');
@@ -570,7 +574,8 @@
       const hAmpm = document.getElementById('halfAmpm').value;
       datetime = `${hDate} ${hAmpm}`;
     } else {
-      datetime = document.getElementById('targetDateTime').value;
+      const rawDt = document.getElementById('targetDateTime').value;
+      datetime = rawDt.replace('T', ' ');
     }
 
     let reason = document.querySelector('input[name="reason"]:checked')?.value || '';
@@ -614,7 +619,6 @@
     toggleOtherReason(false);
   }
 
-  // 一覧取得処理
   function fetchRecords() {
     const container = document.getElementById('recordsContainer');
     container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>';
@@ -623,13 +627,16 @@
     .then(res => res.json())
     .then(data => {
       allRecords = data;
-      renderRecords(allRecords);
+      // 初回表示は直近30件のみ表示して軽量化する
+      const recentRecords = allRecords.slice(0, 30);
+      renderRecords(recentRecords);
     })
     .catch(err => {
       container.innerHTML = '<p style="text-align: center; color: red;">データの取得に失敗しました。</p>';
     });
   }
 
+  // 二重ステータス描画処理
   function renderRecords(records) {
     const container = document.getElementById('recordsContainer');
     if (!records || records.length === 0) {
@@ -639,15 +646,23 @@
 
     let html = '';
     records.forEach(r => {
-      const isApproved = r.status === "承認済" || r.status === "Approved";
-      const badgeClass = isApproved ? 'badge-approved' : 'badge-pending';
-      const statusText = isApproved ? '承認済 (Đã duyệt)' : '未承認 (Chờ duyệt)';
+      const isMgrApproved = r.managerStatus === "承認済" || r.managerStatus === "Approved";
+      const isFacApproved = r.factoryStatus === "承認済" || r.factoryStatus === "Approved";
+
+      const mgrBadgeClass = isMgrApproved ? 'badge-approved' : 'badge-pending';
+      const facBadgeClass = isFacApproved ? 'badge-approved' : 'badge-pending';
+
+      const mgrText = isMgrApproved ? '責任者: 承認済' : '責任者: 未承認';
+      const facText = isFacApproved ? '工場長: 承認済' : '工場長: 未承認';
 
       html += `
         <div class="list-card">
           <div class="list-header">
             <span class="list-name">${r.name} <span class="list-dept">${r.department}</span></span>
-            <span class="badge ${badgeClass}">${statusText}</span>
+            <div class="badge-group">
+              <span class="badge ${mgrBadgeClass}">${mgrText}</span>
+              <span class="badge ${facBadgeClass}">${facText}</span>
+            </div>
           </div>
           <div class="list-detail">
             <strong>【${r.type}】</strong> ${r.datetime}<br>
@@ -659,7 +674,6 @@
     container.innerHTML = html;
   }
 
-  // 「有給取得日（指定日）」に基づく絞り込み
   function filterList() {
     const selectedDate = document.getElementById('filterDate').value;
     const selectedDept = document.getElementById('filterDept').value;
@@ -681,7 +695,8 @@
   function clearFilter() {
     document.getElementById('filterDate').value = '';
     document.getElementById('filterDept').value = '';
-    renderRecords(allRecords);
+    // クリア時も直近30件のみ表示する
+    renderRecords(allRecords.slice(0, 30));
   }
 </script>
 
