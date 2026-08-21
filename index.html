@@ -557,7 +557,8 @@
       mgrNg: "責任者: 未承認",
       facOk: "工場長: 承認済",
       facNg: "工場長: 未承認",
-      alertTimecard: "⏰【注意】\n・タイムカードの打刻を忘れずに行ってください！✨\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？"
+      alertTimecard: "⏰【確認・注意】\n・タイムカードの打刻を忘れずに行ってください！✨\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
+      alertResend: "⏰【確認】\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？"
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
@@ -612,7 +613,8 @@
       mgrNg: "Quản lý: Chờ duyệt",
       facOk: "Xưởng trưởng: Đã duyệt",
       facNg: "Xưởng trưởng: Chờ duyệt",
-      alertTimecard: "⏰【Chú ý】\n・Hãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?"
+      alertTimecard: "⏰【Chú ý】\n・Hãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
+      alertResend: "⏰【Xác nhận】\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?"
     },
     en: {
       authTitle: "Authentication",
@@ -667,7 +669,8 @@
       mgrNg: "Manager: Pending",
       facOk: "Plant Mgr: Approved",
       facNg: "Plant Mgr: Pending",
-      alertTimecard: "⏰【Notice】\n・Please remember to punch your Timecard! ✨\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?"
+      alertTimecard: "⏰【Notice】\n・Please remember to punch your Timecard! ✨\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
+      alertResend: "⏰【Confirm】\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?"
     }
   };
 
@@ -774,12 +777,19 @@
 
     const type = document.querySelector('input[name="type"]:checked')?.value || '';
 
-    // 遅刻・早退・中抜けの場合のみ確認ポップアップを出す
+    // 区分に応じて表示するメッセージを切り替え
+    let confirmMsg = "";
     if (type === '遅刻' || type === '早退' || type === '中抜け') {
-      const isConfirmed = confirm(i18nData[currentLang].alertTimecard);
-      if (!isConfirmed) {
-        return; // キャンセルを押した場合は送信処理を中止
-      }
+      // 打刻忘れと誤り（再送信）の両方を表示
+      confirmMsg = i18nData[currentLang].alertTimecard;
+    } else {
+      // 誤り（再送信）の案内のみを表示
+      confirmMsg = i18nData[currentLang].alertResend;
+    }
+
+    // 確認ダイアログを表示
+    if (!confirm(confirmMsg)) {
+      return; // キャンセルを押した場合は送信処理を中止
     }
 
     const submitBtn = document.getElementById('submitBtn');
