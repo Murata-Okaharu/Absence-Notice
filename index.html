@@ -556,13 +556,14 @@
       mgrOk: "責任者: 承認済",
       mgrNg: "責任者: 未承認",
       facOk: "工場長: 承認済",
-      facNg: "工場長: 未承認"
+      facNg: "工場長: 未承認",
+      alertTimecard: "⏰【注意】\nタイムカードの打刻を忘れずに行ってください！✨\n\nこのまま申請を送信しますか？"
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
       authSub: "Vui lòng nhập Mã số NV và Mật khẩu",
       lblEmpId: "Mã số nhân viên",
-      lblPass: "Mật khẩu (4 chữ số của tháng và ngày)",
+      lblPass: "Mật khẩu (4 số của tháng và ngày)",
       btnLogin: "Đăng nhập",
       errAuthBlank: "Vui lòng nhập Mã số NV và Mật khẩu",
       errAuthCheck: "Đang kiểm tra...",
@@ -582,7 +583,7 @@
       lbl3Type: "3. Loại liên lạc",
       typePaid: "Nghỉ phép",
       typeHalf: "Nghỉ nửa ngày",
-      typeAbsent: "Không phép",
+      typeAbsent: "Nghỉ không phép",
       typeLate: "Đi muộn",
       typeEarly: "Về sớm",
       typeOut: "Vắng giữa giờ",
@@ -610,7 +611,8 @@
       mgrOk: "Quản lý: Đã duyệt",
       mgrNg: "Quản lý: Chờ duyệt",
       facOk: "Xưởng trưởng: Đã duyệt",
-      facNg: "Xưởng trưởng: Chờ duyệt"
+      facNg: "Xưởng trưởng: Chờ duyệt",
+      alertTimecard: "⏰【Chú ý】\nHãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n\nBạn có muốn gửi đăng ký này không?"
     },
     en: {
       authTitle: "Authentication",
@@ -664,7 +666,8 @@
       mgrOk: "Manager: Approved",
       mgrNg: "Manager: Pending",
       facOk: "Plant Mgr: Approved",
-      facNg: "Plant Mgr: Pending"
+      facNg: "Plant Mgr: Pending",
+      alertTimecard: "⏰【Notice】\nPlease remember to punch your Timecard! ✨\n\nDo you want to submit this request?"
     }
   };
 
@@ -677,7 +680,6 @@
       btn.classList.toggle('active', btn.innerText.toLowerCase() === (lang === 'ja' ? 'jp' : lang));
     });
 
-    // テキスト切り替え
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (i18nData[lang][key]) {
@@ -685,7 +687,6 @@
       }
     });
 
-    // プレースホルダー切り替え
     document.querySelectorAll('[data-i18n-ph]').forEach(el => {
       const key = el.getAttribute('data-i18n-ph');
       if (i18nData[lang][key]) {
@@ -693,7 +694,6 @@
       }
     });
 
-    // 再描画が必要な場合
     if (allRecords.length > 0) {
       filterList();
     }
@@ -771,13 +771,23 @@
 
   document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    const type = document.querySelector('input[name="type"]:checked')?.value || '';
+
+    // 遅刻・早退・中抜けの場合のみ確認ポップアップを出す
+    if (type === '遅刻' || type === '早退' || type === '中抜け') {
+      const isConfirmed = confirm(i18nData[currentLang].alertTimecard);
+      if (!isConfirmed) {
+        return; // キャンセルを押した場合は送信処理を中止
+      }
+    }
+
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.innerText = i18nData[currentLang].btnSending;
     submitBtn.disabled = true;
 
     const name = document.getElementById('name').value;
     const department = document.getElementById('department').value;
-    const type = document.querySelector('input[name="type"]:checked')?.value || '';
     
     let datetime = '';
     if (type === '有給' || type === '欠勤') {
