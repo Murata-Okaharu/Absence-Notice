@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>勤怠・連絡 / Liên lạc nghỉ làm / Absence Notice</title>
+  <title>勤怠・連絡システム</title>
   <style>
     :root {
       --primary-color: #2563eb;
@@ -36,6 +36,32 @@
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       padding: 20px;
+      position: relative;
+    }
+
+    /* 言語切替スイッチ */
+    .lang-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .lang-btn {
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      border: 1px solid var(--border-color);
+      background: #f1f5f9;
+      color: #64748b;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .lang-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
     }
 
     .auth-screen {
@@ -130,11 +156,6 @@
       color: var(--primary-color);
     }
 
-    .header p {
-      font-size: 0.85rem;
-      color: #64748b;
-    }
-
     .form-group {
       margin-bottom: 18px;
     }
@@ -144,13 +165,6 @@
       font-weight: bold;
       margin-bottom: 6px;
       font-size: 0.9rem;
-    }
-
-    label .sub {
-      display: block;
-      font-weight: normal;
-      font-size: 0.8rem;
-      color: #64748b;
     }
 
     input[type="text"], input[type="password"], input[type="date"], input[type="datetime-local"], select, textarea {
@@ -311,89 +325,95 @@
 
 <div class="container">
 
+  <!-- 言語切替ボタン -->
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLanguage('ja')">JP</button>
+    <button class="lang-btn" onclick="setLanguage('vi')">VN</button>
+    <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+  </div>
+
   <!-- 本人確認画面 -->
   <div id="authScreen" class="auth-screen">
-    <h2>本人確認</h2>
-    <p>Xác nhận / Authentication</p>
+    <h2 data-i18n="authTitle">本人確認</h2>
+    <p data-i18n="authSub">社員IDと暗証番号を入力してください</p>
     
     <div class="auth-group">
-      <label>社員ID <span style="font-weight:normal; color:#64748b;">(Mã số nhân viên)</span></label>
-      <input type="text" id="empIdInput" class="auth-input" placeholder="例: 1001">
+      <label data-i18n="lblEmpId">社員ID</label>
+      <input type="text" id="empIdInput" class="auth-input" placeholder="1001">
     </div>
 
     <div class="auth-group">
-      <label>暗証番号 <span style="font-weight:normal; color:#64748b;">(月日4桁 例: 0912)</span></label>
+      <label data-i18n="lblPass">暗証番号（月日4桁）</label>
       <input type="password" id="passInput" class="auth-input" maxlength="4" placeholder="••••">
     </div>
 
-    <button onclick="checkAuth()" id="loginBtn" class="auth-btn">ログイン (Login)</button>
+    <button onclick="checkAuth()" id="loginBtn" class="auth-btn" data-i18n="btnLogin">ログイン</button>
     <p id="passError" style="color: red; margin-top: 10px; display: none;"></p>
   </div>
 
   <!-- アプリ本体 -->
   <div id="mainApp" class="main-app">
     <div class="tab-menu">
-      <button class="tab-btn active" onclick="switchTab('form')">勤怠送信 (Gửi)</button>
-      <button class="tab-btn" onclick="switchTab('list')">連絡一覧 (Danh sách)</button>
+      <button class="tab-btn active" onclick="switchTab('form')" data-i18n="tabSend">勤怠送信</button>
+      <button class="tab-btn" onclick="switchTab('list')" data-i18n="tabList">連絡一覧</button>
     </div>
 
     <!-- フォーム画面 -->
     <div id="formTab">
       <div class="header">
-        <h1>勤怠・連絡</h1>
-        <p>Liên lạc nghỉ làm / Absence Notice</p>
+        <h1 data-i18n="formTitle">勤怠・連絡</h1>
       </div>
 
       <form id="attendanceForm">
         <div class="form-group">
-          <label>1. お名前 <span class="sub">Họ và tên / Full Name</span></label>
+          <label data-i18n="lbl1Name">1. お名前</label>
           <input type="text" id="name" name="name" readonly style="background-color: #f1f5f9;" required>
         </div>
 
         <div class="form-group">
-          <label>2. あなたの工程 <span class="sub">Công đoạn làm việc / Department</span></label>
+          <label data-i18n="lbl2Dept">2. あなたの工程</label>
           <select id="department" name="department" required>
-            <option value="">-- 選んでください --</option>
-            <option value="事務所">事務所 (Văn phòng)</option>
-            <option value="検査">検査 (Kiểm tra)</option>
-            <option value="ダイシング">ダイシング (Cắt)</option>
-            <option value="密閉ボックス洗浄">密閉ボックス洗浄 (Rửa thùng kín khí)</option>
-            <option value="スキャン">スキャン (Scan)</option>
+            <option value="" data-i18n="optSelect">-- 選んでください --</option>
+            <option value="事務所" data-i18n="deptOffice">事務所</option>
+            <option value="検査" data-i18n="deptInspect">検査</option>
+            <option value="ダイシング" data-i18n="deptDicing">ダイシング</option>
+            <option value="密閉ボックス洗浄" data-i18n="deptCleaning">密閉ボックス洗浄</option>
+            <option value="スキャン" data-i18n="deptScan">スキャン</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>3. 連絡の種類 <span class="sub">Loại liên lạc / Type</span></label>
+          <label data-i18n="lbl3Type">3. 連絡の種類</label>
           <div class="type-grid">
             <div class="type-card">
               <input type="radio" id="type1" name="type" value="有給" onchange="toggleDateInput('date')" required>
-              <label for="type1">有給<span class="sub">Nghỉ phép</span></label>
+              <label for="type1" data-i18n="typePaid">有給</label>
             </div>
             <div class="type-card">
               <input type="radio" id="type2" name="type" value="半休" onchange="toggleDateInput('half')">
-              <label for="type2">半休<span class="sub">Nghỉ nửa ngày</span></label>
+              <label for="type2" data-i18n="typeHalf">半休</label>
             </div>
             <div class="type-card">
               <input type="radio" id="type3" name="type" value="欠勤" onchange="toggleDateInput('date')">
-              <label for="type3">欠勤<span class="sub">Nghỉ không phép/ốm</span></label>
+              <label for="type3" data-i18n="typeAbsent">欠勤</label>
             </div>
             <div class="type-card">
               <input type="radio" id="type4" name="type" value="遅刻" onchange="toggleDateInput('datetime')">
-              <label for="type4">遅刻<span class="sub">Đi muộn</span></label>
+              <label for="type4" data-i18n="typeLate">遅刻</label>
             </div>
             <div class="type-card">
               <input type="radio" id="type5" name="type" value="早退" onchange="toggleDateInput('datetime')">
-              <label for="type5">早退<span class="sub">Về sớm</span></label>
+              <label for="type5" data-i18n="typeEarly">早退</label>
             </div>
             <div class="type-card">
               <input type="radio" id="type6" name="type" value="中抜け" onchange="toggleDateInput('datetime')">
-              <label for="type6">中抜け<span class="sub">Vắng mặt giữa giờ</span></label>
+              <label for="type6" data-i18n="typeOut">中抜け</label>
             </div>
           </div>
         </div>
 
         <div class="form-group" id="dateInputArea">
-          <label>4. 日付・時間 <span class="sub">Ngày / Giờ (Date / Time)</span></label>
+          <label data-i18n="lbl4Date">4. 日付・時間</label>
 
           <div id="singleDateBlock">
             <input type="date" id="targetDate" name="targetDate">
@@ -402,8 +422,8 @@
           <div id="halfDateBlock" style="display: none;">
             <input type="date" id="halfDate" name="halfDate" style="margin-bottom: 8px;">
             <select id="halfAmpm" name="halfAmpm">
-              <option value="午前 (Sáng / AM)">午前 (Sáng / AM)</option>
-              <option value="午後 (Chiều / PM)">午後 (Chiều / PM)</option>
+              <option value="午前 (Sáng / AM)" data-i18n="optAm">午前 (AM)</option>
+              <option value="午後 (Chiều / PM)" data-i18n="optPm">午後 (PM)</option>
             </select>
           </div>
 
@@ -413,65 +433,63 @@
         </div>
 
         <div class="form-group">
-          <label>5. 理由 <span class="sub">Lý do / Reason</span></label>
+          <label data-i18n="lbl5Reason">5. 理由</label>
           <div class="reason-grid">
             <div class="type-card">
               <input type="radio" id="reason1" name="reason" value="体調不良" onchange="toggleOtherReason(false)" required>
-              <label for="reason1" style="text-align: left;">① 体調不良 <span class="sub">Sốt / Cảm / Ốm</span></label>
+              <label for="reason1" style="text-align: left;" data-i18n="reason1">① 体調不良</label>
             </div>
             <div class="type-card">
               <input type="radio" id="reason2" name="reason" value="通院" onchange="toggleOtherReason(false)">
-              <label for="reason2" style="text-align: left;">② 通院 <span class="sub">Đi bệnh viện</span></label>
+              <label for="reason2" style="text-align: left;" data-i18n="reason2">② 通院</label>
             </div>
             <div class="type-card">
               <input type="radio" id="reason3" name="reason" value="私用" onchange="toggleOtherReason(false)">
-              <label for="reason3" style="text-align: left;">③ 私用 <span class="sub">Việc riêng</span></label>
+              <label for="reason3" style="text-align: left;" data-i18n="reason3">③ 私用</label>
             </div>
             <div class="type-card">
               <input type="radio" id="reason4" name="reason" value="その他" onchange="toggleOtherReason(true)">
-              <label for="reason4" style="text-align: left;">④ その他 <span class="sub">Khác (Other)</span></label>
+              <label for="reason4" style="text-align: left;" data-i18n="reason4">④ その他</label>
             </div>
           </div>
           <div id="otherReasonBlock" style="display: none; margin-top: 8px;">
-            <textarea id="otherReasonText" name="otherReasonText" rows="2" placeholder="理由を入力してください / Nhập lý do"></textarea>
+            <textarea id="otherReasonText" name="otherReasonText" rows="2" data-i18n-ph="phReason" placeholder="理由を入力してください"></textarea>
           </div>
         </div>
 
-        <button type="submit" class="submit-btn">送信する (Gửi)</button>
+        <button type="submit" class="submit-btn" id="submitBtn" data-i18n="btnSubmit">送信する</button>
       </form>
 
       <div id="successMessage" class="success-msg">
-        <h2 style="color: var(--accent-color);">送信完了！</h2>
-        <p>Đã gửi thành công!</p>
-        <p style="margin-top: 10px; font-size: 0.85rem; color: #64748b;">管理者に通知されました。</p>
-        <button onclick="resetForm()" class="submit-btn" style="margin-top: 15px; background: #64748b;">もう一度入力する</button>
+        <h2 style="color: var(--accent-color);" data-i18n="msgSuccess">送信完了！</h2>
+        <p style="margin-top: 10px; font-size: 0.85rem; color: #64748b;" data-i18n="msgNotified">管理者に通知されました。</p>
+        <button onclick="resetForm()" class="submit-btn" style="margin-top: 15px; background: #64748b;" data-i18n="btnAgain">もう一度入力する</button>
       </div>
     </div>
 
     <!-- 連絡一覧画面 -->
     <div id="listTab" style="display: none;">
       <div class="header">
-        <h1>連絡一覧・承認状況</h1>
-        <p>Danh sách & Trạng thái duyệt</p>
+        <h1 data-i18n="listTitle">連絡一覧・承認状況</h1>
       </div>
 
       <div class="filter-box">
         <div class="filter-row">
           <input type="date" id="filterDate" onchange="filterList()">
           <select id="filterDept" onchange="filterList()">
-            <option value="">すべての工程</option>
-            <option value="事務所">事務所</option>
-            <option value="検査">検査</option>
-            <option value="ダイシング">ダイシング</option>
-            <option value="密閉ボックス洗浄">密閉ボックス洗浄</option>
-            <option value="スキャン">スキャン</option>
+            <option value="" data-i18n="filterAllDept">すべての工程</option>
+            <option value="事務所" data-i18n="deptOffice">事務所</option>
+            <option value="検査" data-i18n="deptInspect">検査</option>
+            <option value="ダイシング" data-i18n="deptDicing">ダイシング</option>
+            <option value="密閉ボックス洗浄" data-i18n="deptCleaning">密閉ボックス洗浄</option>
+            <option value="スキャン" data-i18n="deptScan">スキャン</option>
           </select>
         </div>
-        <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer;">検索クリア (Xóa lọc)</button>
+        <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer;" data-i18n="btnClearFilter">検索クリア</button>
       </div>
 
       <div id="recordsContainer">
-        <p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>
+        <p style="text-align: center; color: #64748b; padding: 20px;" data-i18n="msgLoading">読み込み中...</p>
       </div>
     </div>
 
@@ -481,10 +499,205 @@
 <script>
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
 
+  let currentLang = 'ja';
   let allRecords = [];
+
+  // 多言語辞書データ
+  const i18nData = {
+    ja: {
+      authTitle: "本人確認",
+      authSub: "社員IDと暗証番号を入力してください",
+      lblEmpId: "社員ID",
+      lblPass: "暗証番号（月日4桁 例: 0912）",
+      btnLogin: "ログイン",
+      errAuthBlank: "IDと暗証番号（月日）を入力してください",
+      errAuthCheck: "確認中...",
+      errAuthFail: "IDまたは暗証番号（月日）が違います",
+      errAuthNet: "通信エラーが発生しました",
+      tabSend: "勤怠送信",
+      tabList: "連絡一覧",
+      formTitle: "勤怠・連絡",
+      lbl1Name: "1. お名前",
+      lbl2Dept: "2. あなたの工程",
+      optSelect: "-- 選んでください --",
+      deptOffice: "事務所",
+      deptInspect: "検査",
+      deptDicing: "ダイシング",
+      deptCleaning: "密閉ボックス洗浄",
+      deptScan: "スキャン",
+      lbl3Type: "3. 連絡の種類",
+      typePaid: "有給",
+      typeHalf: "半休",
+      typeAbsent: "欠勤",
+      typeLate: "遅刻",
+      typeEarly: "早退",
+      typeOut: "中抜け",
+      lbl4Date: "4. 日付・時間",
+      optAm: "午前 (AM)",
+      optPm: "午後 (PM)",
+      lbl5Reason: "5. 理由",
+      reason1: "① 体調不良 (風邪・発熱)",
+      reason2: "② 通院",
+      reason3: "③ 私用",
+      reason4: "④ その他",
+      phReason: "理由を入力してください",
+      btnSubmit: "送信する",
+      btnSending: "送信中...",
+      msgSuccess: "送信完了！",
+      msgNotified: "管理者に通知されました。",
+      btnAgain: "もう一度入力する",
+      listTitle: "連絡一覧・承認状況",
+      filterAllDept: "すべての工程",
+      btnClearFilter: "検索クリア",
+      msgLoading: "読み込み中...",
+      msgNoData: "データがありません。",
+      msgLoadErr: "データの取得に失敗しました。",
+      lblReason: "理由",
+      mgrOk: "責任者: 承認済",
+      mgrNg: "責任者: 未承認",
+      facOk: "工場長: 承認済",
+      facNg: "工場長: 未承認"
+    },
+    vi: {
+      authTitle: "Xác nhận / Authentication",
+      authSub: "Vui lòng nhập Mã số NV và Mật khẩu",
+      lblEmpId: "Mã số nhân viên",
+      lblPass: "Mật khẩu (4 chữ số của tháng và ngày)",
+      btnLogin: "Đăng nhập",
+      errAuthBlank: "Vui lòng nhập Mã số NV và Mật khẩu",
+      errAuthCheck: "Đang kiểm tra...",
+      errAuthFail: "Mã số NV hoặc Mật khẩu không đúng",
+      errAuthNet: "Lỗi kết nối mạng",
+      tabSend: "Gửi thông báo",
+      tabList: "Danh sách",
+      formTitle: "Liên lạc nghỉ làm",
+      lbl1Name: "1. Họ và tên",
+      lbl2Dept: "2. Công đoạn làm việc",
+      optSelect: "-- Vui lòng chọn --",
+      deptOffice: "Văn phòng (事務所)",
+      deptInspect: "Kiểm tra (検査)",
+      deptDicing: "Cắt (ダイシング)",
+      deptCleaning: "Rửa thùng (密閉ボックス洗浄)",
+      deptScan: "Scan (スキャン)",
+      lbl3Type: "3. Loại liên lạc",
+      typePaid: "Nghỉ phép",
+      typeHalf: "Nghỉ nửa ngày",
+      typeAbsent: "Không phép",
+      typeLate: "Đi muộn",
+      typeEarly: "Về sớm",
+      typeOut: "Vắng giữa giờ",
+      lbl4Date: "4. Ngày / Giờ",
+      optAm: "Sáng (AM)",
+      optPm: "Chiều (PM)",
+      lbl5Reason: "5. Lý do",
+      reason1: "① Sức khỏe có vấn đề",
+      reason2: "② Đi bệnh viện",
+      reason3: "③ Việc riêng",
+      reason4: "④ Khác",
+      phReason: "Nhập lý do chi tiết",
+      btnSubmit: "Gửi",
+      btnSending: "Đang gửi...",
+      msgSuccess: "Đã gửi thành công!",
+      msgNotified: "Đã thông báo cho quản lý.",
+      btnAgain: "Nhập lại",
+      listTitle: "Danh sách & Trạng thái",
+      filterAllDept: "Tất cả công đoạn",
+      btnClearFilter: "Xóa lọc",
+      msgLoading: "Đang tải...",
+      msgNoData: "Không có dữ liệu.",
+      msgLoadErr: "Tải dữ liệu thất bại.",
+      lblReason: "Lý do",
+      mgrOk: "Quản lý: Đã duyệt",
+      mgrNg: "Quản lý: Chờ duyệt",
+      facOk: "Xưởng trưởng: Đã duyệt",
+      facNg: "Xưởng trưởng: Chờ duyệt"
+    },
+    en: {
+      authTitle: "Authentication",
+      authSub: "Please enter your Employee ID and PIN",
+      lblEmpId: "Employee ID",
+      lblPass: "PIN (4 digits MMDD)",
+      btnLogin: "Login",
+      errAuthBlank: "Please enter ID and PIN",
+      errAuthCheck: "Checking...",
+      errAuthFail: "Incorrect ID or PIN",
+      errAuthNet: "Network error occurred",
+      tabSend: "Submit Notice",
+      tabList: "Notice List",
+      formTitle: "Absence Notice",
+      lbl1Name: "1. Full Name",
+      lbl2Dept: "2. Department",
+      optSelect: "-- Select Department --",
+      deptOffice: "Office",
+      deptInspect: "Inspection",
+      deptDicing: "Dicing",
+      deptCleaning: "Box Washing",
+      deptScan: "Scan",
+      lbl3Type: "3. Type of Notice",
+      typePaid: "Paid Leave",
+      typeHalf: "Half Day",
+      typeAbsent: "Absent",
+      typeLate: "Late Arrival",
+      typeEarly: "Early Leave",
+      typeOut: "Temporary Out",
+      lbl4Date: "4. Date & Time",
+      optAm: "Morning (AM)",
+      optPm: "Afternoon (PM)",
+      lbl5Reason: "5. Reason",
+      reason1: "① Sick / Unwell",
+      reason2: "② Hospital / Clinic",
+      reason3: "③ Personal Matters",
+      reason4: "④ Other",
+      phReason: "Please enter your reason",
+      btnSubmit: "Submit",
+      btnSending: "Submitting...",
+      msgSuccess: "Submitted Successfully!",
+      msgNotified: "Manager has been notified.",
+      btnAgain: "Submit Another",
+      listTitle: "Notice List & Status",
+      filterAllDept: "All Departments",
+      btnClearFilter: "Clear Filter",
+      msgLoading: "Loading...",
+      msgNoData: "No data available.",
+      msgLoadErr: "Failed to load data.",
+      lblReason: "Reason",
+      mgrOk: "Manager: Approved",
+      mgrNg: "Manager: Pending",
+      facOk: "Plant Mgr: Approved",
+      facNg: "Plant Mgr: Pending"
+    }
+  };
 
   document.getElementById('targetDate').valueAsDate = new Date();
   document.getElementById('halfDate').valueAsDate = new Date();
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.innerText.toLowerCase() === (lang === 'ja' ? 'jp' : lang));
+    });
+
+    // テキスト切り替え
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (i18nData[lang][key]) {
+        el.innerText = i18nData[lang][key];
+      }
+    });
+
+    // プレースホルダー切り替え
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const key = el.getAttribute('data-i18n-ph');
+      if (i18nData[lang][key]) {
+        el.placeholder = i18nData[lang][key];
+      }
+    });
+
+    // 再描画が必要な場合
+    if (allRecords.length > 0) {
+      filterList();
+    }
+  }
 
   function checkAuth() {
     const empId = document.getElementById('empIdInput').value.trim();
@@ -493,13 +706,13 @@
     const loginBtn = document.getElementById('loginBtn');
 
     if (!empId || !dob) {
-      errEl.innerText = "IDと暗証番号（月日）を入力してください";
+      errEl.innerText = i18nData[currentLang].errAuthBlank;
       errEl.style.display = 'block';
       return;
     }
 
     loginBtn.disabled = true;
-    loginBtn.innerText = "確認中...";
+    loginBtn.innerText = i18nData[currentLang].errAuthCheck;
     errEl.style.display = 'none';
 
     fetch(`${GAS_WEB_APP_URL}?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`)
@@ -510,17 +723,17 @@
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
       } else {
-        errEl.innerText = "IDまたは暗証番号（月日）が違います";
+        errEl.innerText = i18nData[currentLang].errAuthFail;
         errEl.style.display = 'block';
         loginBtn.disabled = false;
-        loginBtn.innerText = "ログイン (Login)";
+        loginBtn.innerText = i18nData[currentLang].btnLogin;
       }
     })
     .catch(err => {
-      errEl.innerText = "通信エラーが発生しました";
+      errEl.innerText = i18nData[currentLang].errAuthNet;
       errEl.style.display = 'block';
       loginBtn.disabled = false;
-      loginBtn.innerText = "ログイン (Login)";
+      loginBtn.innerText = i18nData[currentLang].btnLogin;
     });
   }
 
@@ -558,8 +771,8 @@
 
   document.getElementById('attendanceForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    const submitBtn = document.querySelector('.submit-btn');
-    submitBtn.innerText = "送信中... (Đang gửi)";
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerText = i18nData[currentLang].btnSending;
     submitBtn.disabled = true;
 
     const name = document.getElementById('name').value;
@@ -604,7 +817,7 @@
     })
     .catch(error => {
       alert("送信に失敗しました。");
-      submitBtn.innerText = "送信する (Gửi)";
+      submitBtn.innerText = i18nData[currentLang].btnSubmit;
       submitBtn.disabled = false;
     });
   });
@@ -613,40 +826,37 @@
     document.getElementById('attendanceForm').reset();
     document.getElementById('attendanceForm').style.display = 'block';
     document.getElementById('successMessage').style.display = 'none';
-    document.querySelector('.submit-btn').innerText = "送信する (Gửi)";
-    document.querySelector('.submit-btn').disabled = false;
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerText = i18nData[currentLang].btnSubmit;
+    submitBtn.disabled = false;
     toggleDateInput('date');
     toggleOtherReason(false);
   }
 
   function fetchRecords() {
     const container = document.getElementById('recordsContainer');
-    container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">読み込み中... (Đang tải...)</p>';
+    container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
 
     fetch(GAS_WEB_APP_URL + "?action=getRecords")
     .then(res => res.json())
     .then(data => {
       allRecords = data;
-      // 初回表示は直近30件のみ表示して軽量化する
-      const recentRecords = allRecords.slice(0, 30);
-      renderRecords(recentRecords);
+      filterList();
     })
     .catch(err => {
-      container.innerHTML = '<p style="text-align: center; color: red;">データの取得に失敗しました。</p>';
+      container.innerHTML = `<p style="text-align: center; color: red;">${i18nData[currentLang].msgLoadErr}</p>`;
     });
   }
 
-  // 二重ステータス描画処理
   function renderRecords(records) {
     const container = document.getElementById('recordsContainer');
     if (!records || records.length === 0) {
-      container.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">データがありません。</p>';
+      container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgNoData}</p>`;
       return;
     }
 
     let html = '';
     records.forEach(r => {
-      // String化してtrimした上で判定
       const mgrStatus = String(r.managerStatus || '').trim();
       const facStatus = String(r.factoryStatus || '').trim();
 
@@ -656,8 +866,8 @@
       const mgrBadgeClass = isMgrApproved ? 'badge-approved' : 'badge-pending';
       const facBadgeClass = isFacApproved ? 'badge-approved' : 'badge-pending';
 
-      const mgrText = isMgrApproved ? '責任者: 承認済' : '責任者: 未承認';
-      const facText = isFacApproved ? '工場長: 承認済' : '工場長: 未承認';
+      const mgrText = isMgrApproved ? i18nData[currentLang].mgrOk : i18nData[currentLang].mgrNg;
+      const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
 
       html += `
         <div class="list-card">
@@ -670,7 +880,7 @@
           </div>
           <div class="list-detail">
             <strong>【${r.type}】</strong> ${r.datetime}<br>
-            <strong>理由:</strong> ${r.reason}
+            <strong>${i18nData[currentLang].lblReason}:</strong> ${r.reason}
           </div>
         </div>
       `;
@@ -693,13 +903,12 @@
       return matchDate && matchDept;
     });
 
-    renderRecords(filtered);
+    renderRecords(filtered.slice(0, 30));
   }
 
   function clearFilter() {
     document.getElementById('filterDate').value = '';
     document.getElementById('filterDept').value = '';
-    // クリア時も直近30件のみ表示する
     renderRecords(allRecords.slice(0, 30));
   }
 </script>
