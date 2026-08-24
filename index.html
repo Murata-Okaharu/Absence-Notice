@@ -340,6 +340,90 @@
       color: #334155;
       line-height: 1.4;
     }
+
+    /* --- メッセージ機能用のスタイル追加 --- */
+    .msg-toggle-btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #334155;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .msg-container {
+      display: none;
+      margin-top: 8px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 8px;
+      background: #f8fafc;
+      border-radius: 6px;
+      padding: 8px;
+    }
+
+    .msg-history {
+      max-height: 150px;
+      overflow-y: auto;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .msg-item {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      max-width: 85%;
+      word-wrap: break-word;
+    }
+
+    .msg-item.applicant {
+      background: #dbeafe;
+      align-self: flex-end;
+      color: #1e40af;
+    }
+
+    .msg-item.manager {
+      background: #e2e8f0;
+      align-self: flex-start;
+      color: #0f172a;
+    }
+
+    .msg-meta {
+      font-size: 0.65rem;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+
+    .msg-input-box {
+      display: flex;
+      gap: 6px;
+    }
+
+    .msg-input-box input {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      border-radius: 6px;
+    }
+
+    .msg-input-box button {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -451,7 +535,7 @@
           </div>
 
           <div id="paidLeaveInfo" class="paid-leave-info">
-            📅 今年度の有給使用日数：<span id="paidLeaveCount">0</span> 回
+            📅 今年度の有給使用日数：<span id="paidLeaveCount">0</span> 日
           </div>
         </div>
 
@@ -595,7 +679,10 @@
       facNg: "工場長: 未承認",
       alertTimecard: "⏰【確認・注意】\n・タイムカードの打刻を忘れずに行ってください！✨\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
       alertResend: "⏰【確認】\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
-      unset: "未設定"
+      unset: "未設定",
+      btnMsgOpen: "💬 工場長とのメッセージ",
+      phMsgInput: "メッセージを入力...",
+      btnMsgSend: "送信"
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
@@ -659,7 +746,10 @@
       facNg: "Xưởng trưởng: Chờ duyệt",
       alertTimecard: "⏰【Chú ý】\n・Hãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
       alertResend: "⏰【Xác nhận】\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
-      unset: "Chưa thiết lập"
+      unset: "Chưa thiết lập",
+      btnMsgOpen: "💬 Tin nhắn với Xưởng trưởng",
+      phMsgInput: "Nhập tin nhắn...",
+      btnMsgSend: "Gửi"
     },
     en: {
       authTitle: "Authentication",
@@ -723,7 +813,10 @@
       facNg: "Plant Mgr: Pending",
       alertTimecard: "⏰【Notice】\n・Please remember to punch your Timecard! ✨\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
       alertResend: "⏰【Confirm】\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
-      unset: "Not set"
+      unset: "Not set",
+      btnMsgOpen: "💬 Message with Plant Manager",
+      phMsgInput: "Type a message...",
+      btnMsgSend: "Send"
     }
   };
 
@@ -893,13 +986,11 @@
 
     let totalDays = 0;
     allRecords.forEach(r => {
-      // 承認ステータスの判定（「未」や「Pending」が含まれておらず、「承認」が含まれているか）
       const mgrStatus = String(r.managerStatus || '').trim();
       const facStatus = String(r.factoryStatus || '').trim();
       const isMgrApproved = !mgrStatus.includes("未") && !mgrStatus.includes("Pending") && (mgrStatus.includes("承認") || mgrStatus.includes("Approved"));
       const isFacApproved = !facStatus.includes("未") && !facStatus.includes("Pending") && (facStatus.includes("承認") || facStatus.includes("Approved"));
 
-      // 両方の承認が完了している場合のみ計算（片方だけでOKの場合は条件を調整してください）
       if (isMgrApproved && isFacApproved) {
         if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
           const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
@@ -1076,10 +1167,103 @@
           <div class="list-detail">
             <strong>【${displayType}】</strong> ${r.datetime}
           </div>
+
+          <!-- メッセージトグルボタン -->
+          <button class="msg-toggle-btn" onclick="toggleMessageBox('${r.id}')">
+            <span>${i18nData[currentLang].btnMsgOpen}</span>
+            <span>▼</span>
+          </button>
+
+          <!-- メッセージ表示エリア -->
+          <div class="msg-container" id="msgBox_${r.id}">
+            <div class="msg-history" id="msgHistory_${r.id}">
+              <span style="font-size:0.75rem; color:#94a3b8;">読み込み中...</span>
+            </div>
+            <div class="msg-input-box">
+              <input type="text" id="msgInput_${r.id}" placeholder="${i18nData[currentLang].phMsgInput}">
+              <button onclick="sendChatMessage('${r.id}')">${i18nData[currentLang].btnMsgSend}</button>
+            </div>
+          </div>
         </div>
       `;
     });
     container.innerHTML = html;
+  }
+
+  // --- メッセージ枠の開閉 & 履歴読み込み ---
+  function toggleMessageBox(recordId) {
+    const box = document.getElementById(`msgBox_${recordId}`);
+    if (box.style.display === 'block') {
+      box.style.display = 'none';
+    } else {
+      box.style.display = 'block';
+      loadChatMessages(recordId);
+    }
+  }
+
+  // --- チャット履歴取得 ---
+  function loadChatMessages(recordId) {
+    const historyEl = document.getElementById(`msgHistory_${recordId}`);
+    
+    fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}`)
+    .then(res => res.json())
+    .then(list => {
+      if (!list || list.length === 0) {
+        historyEl.innerHTML = `<span style="font-size:0.75rem; color:#94a3b8;">メッセージはありません</span>`;
+        return;
+      }
+      
+      let html = '';
+      list.forEach(m => {
+        const isApplicant = m.role === 'Applicant';
+        const cls = isApplicant ? 'applicant' : 'manager';
+        html += `
+          <div class="msg-item ${cls}">
+            <div class="msg-meta">${m.sender} • ${m.timestamp}</div>
+            <div>${m.message}</div>
+          </div>
+        `;
+      });
+      historyEl.innerHTML = html;
+      historyEl.scrollTop = historyEl.scrollHeight; // 最下部へスクロール
+    })
+    .catch(err => {
+      historyEl.innerHTML = `<span style="font-size:0.75rem; color:red;">エラーが発生しました</span>`;
+    });
+  }
+
+  // --- チャットメッセージ送信 ---
+  function sendChatMessage(recordId) {
+    const inputEl = document.getElementById(`msgInput_${recordId}`);
+    const message = inputEl.value.trim();
+    const userName = document.getElementById('name').value;
+
+    if (!message) return;
+
+    inputEl.disabled = true;
+
+    const payload = new URLSearchParams();
+    payload.append('action', 'addMessage');
+    payload.append('recordId', recordId);
+    payload.append('sender', userName);
+    payload.append('role', 'Applicant'); // 一般ユーザー側からの送信
+    payload.append('message', message);
+
+    fetch(GAS_WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: payload.toString()
+    })
+    .then(res => res.json())
+    .then(data => {
+      inputEl.value = '';
+      inputEl.disabled = false;
+      loadChatMessages(recordId); // 履歴再読み込み
+    })
+    .catch(err => {
+      alert("メッセージの送信に失敗しました");
+      inputEl.disabled = false;
+    });
   }
 
   function filterList() {
