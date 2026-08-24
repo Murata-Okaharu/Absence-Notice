@@ -893,22 +893,29 @@
 
     let totalDays = 0;
     allRecords.forEach(r => {
-      if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
-        // 日付形式（YYYY-MM-DD 〜 YYYY-MM-DD または YYYY-MM-DD）の抽出
-        const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
-        if (dateMatches) {
-          const recStart = new Date(dateMatches[0].replace(/-/g, '/'));
-          if (recStart >= startDate && recStart <= endDate) {
-            if (r.type === '半休') {
-              totalDays += 0.5;
-            } else if (dateMatches.length >= 2) {
-              const recEnd = new Date(dateMatches[1].replace(/-/g, '/'));
-              // 開始日〜終了日の日数計算（土日含む差分＋1日）
-              const diffTime = Math.abs(recEnd - recStart);
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-              totalDays += diffDays;
-            } else {
-              totalDays += 1;
+      // 承認ステータスの判定（「未」や「Pending」が含まれておらず、「承認」が含まれているか）
+      const mgrStatus = String(r.managerStatus || '').trim();
+      const facStatus = String(r.factoryStatus || '').trim();
+      const isMgrApproved = !mgrStatus.includes("未") && !mgrStatus.includes("Pending") && (mgrStatus.includes("承認") || mgrStatus.includes("Approved"));
+      const isFacApproved = !facStatus.includes("未") && !facStatus.includes("Pending") && (facStatus.includes("承認") || facStatus.includes("Approved"));
+
+      // 両方の承認が完了している場合のみ計算（片方だけでOKの場合は条件を調整してください）
+      if (isMgrApproved && isFacApproved) {
+        if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
+          const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
+          if (dateMatches) {
+            const recStart = new Date(dateMatches[0].replace(/-/g, '/'));
+            if (recStart >= startDate && recStart <= endDate) {
+              if (r.type === '半休') {
+                totalDays += 0.5;
+              } else if (dateMatches.length >= 2) {
+                const recEnd = new Date(dateMatches[1].replace(/-/g, '/'));
+                const diffTime = Math.abs(recEnd - recStart);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                totalDays += diffDays;
+              } else {
+                totalDays += 1;
+              }
             }
           }
         }
