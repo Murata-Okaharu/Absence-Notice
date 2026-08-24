@@ -39,7 +39,6 @@
       position: relative;
     }
 
-    /* 言語切替スイッチ */
     .lang-switcher {
       display: flex;
       justify-content: flex-end;
@@ -189,6 +188,19 @@
 
     .range-inputs input {
       flex: 1;
+    }
+
+    /* 有給取得回数メッセージバナー */
+    .paid-leave-info {
+      display: none;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin-top: 8px;
     }
 
     .type-grid {
@@ -446,6 +458,11 @@
           <div id="dateTimeBlock" style="display: none;">
             <input type="datetime-local" id="targetDateTime" name="targetDateTime">
           </div>
+
+          <!-- 有給使用回数メッセージバナー -->
+          <div id="paidLeaveInfo" class="paid-leave-info">
+            📅 今年度の有給使用回数：<span id="paidLeaveCount">0</span> 回
+          </div>
         </div>
 
         <div class="form-group">
@@ -518,7 +535,6 @@
   let currentLang = 'ja';
   let allRecords = [];
 
-  // 多言語辞書データ
   const i18nData = {
     ja: {
       authTitle: "本人確認",
@@ -550,6 +566,8 @@
       typeOut: "中抜け",
       lbl4Date: "4. 日付・時間",
       hintDateRange: "※1日のみの場合は終了日を空欄にしてください",
+      paidCountMsg: "📅 今年度の有給使用回数：",
+      countUnit: " 回",
       optAm: "午前 (AM)",
       optPm: "午後 (PM)",
       lbl5Reason: "5. 理由",
@@ -569,7 +587,6 @@
       msgLoading: "読み込み中...",
       msgNoData: "データがありません。",
       msgLoadErr: "データの取得に失敗しました。",
-      lblReason: "理由",
       mgrOk: "責任者: 承認済",
       mgrNg: "責任者: 未承認",
       facOk: "工場長: 承認済",
@@ -607,6 +624,8 @@
       typeOut: "Vắng giữa giờ",
       lbl4Date: "4. Ngày / Giờ",
       hintDateRange: "※ Nếu nghỉ 1 ngày, để trống ngày kết thúc",
+      paidCountMsg: "📅 Số lần sử dụng nghỉ phép năm nay: ",
+      countUnit: " lần",
       optAm: "Sáng (AM)",
       optPm: "Chiều (PM)",
       lbl5Reason: "5. Lý do",
@@ -626,7 +645,6 @@
       msgLoading: "Đang tải...",
       msgNoData: "Không có dữ liệu.",
       msgLoadErr: "Tải dữ liệu thất bại.",
-      lblReason: "Lý do",
       mgrOk: "Quản lý: Đã duyệt",
       mgrNg: "Quản lý: Chờ duyệt",
       facOk: "Xưởng trưởng: Đã duyệt",
@@ -664,6 +682,8 @@
       typeOut: "Temporary Out",
       lbl4Date: "4. Date & Time",
       hintDateRange: "※ Leave end date blank for single-day requests",
+      paidCountMsg: "📅 Paid Leave used this fiscal year: ",
+      countUnit: " time(s)",
       optAm: "Morning (AM)",
       optPm: "Afternoon (PM)",
       lbl5Reason: "5. Reason",
@@ -683,7 +703,6 @@
       msgLoading: "Loading...",
       msgNoData: "No data available.",
       msgLoadErr: "Failed to load data.",
-      lblReason: "Reason",
       mgrOk: "Manager: Approved",
       mgrNg: "Manager: Pending",
       facOk: "Plant Mgr: Approved",
@@ -716,6 +735,9 @@
       }
     });
 
+    // 有給メッセージ更新
+    updatePaidLeaveCountUI();
+
     if (allRecords.length > 0) {
       filterList();
     }
@@ -744,6 +766,8 @@
         document.getElementById('name').value = data.userName;
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
+        // ログイン完了時に全データバックグラウンド取得（有給カウント計算用）
+        preloadRecords();
       } else {
         errEl.innerText = i18nData[currentLang].errAuthFail;
         errEl.style.display = 'block';
@@ -782,6 +806,61 @@
     document.getElementById('singleDateBlock').style.display = (mode === 'date') ? 'block' : 'none';
     document.getElementById('halfDateBlock').style.display = (mode === 'half') ? 'block' : 'none';
     document.getElementById('dateTimeBlock').style.display = (mode === 'datetime') ? 'block' : 'none';
+
+    // 有給または半休が選ばれた場合のみカウント表示
+    const selectedType = document.querySelector('input[name="type"]:checked')?.value;
+    const paidInfoEl = document.getElementById('paidLeaveInfo');
+    if (selectedType === '有給' || selectedType === '半休') {
+      paidInfoEl.style.display = 'block';
+      calculatePaidLeaveCount();
+    } else {
+      paidInfoEl.style.display = 'none';
+    }
+  }
+
+  // 今年度（3/16〜翌3/15）の起算日を考慮して有給カウントを判定
+  function calculatePaidLeaveCount() {
+    const userName = document.getElementById('name').value;
+    if (!userName || allRecords.length === 0) return;
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    
+    // 今年度の3月16日〜翌年3月15日を設定
+    let startDate, endDate;
+    const fiscalStartThisYear = new Date(currentYear, 2, 16); // 3月16日 (月は0始まりのため2)
+
+    if (today >= fiscalStartThisYear) {
+      startDate = new Date(currentYear, 2, 16);
+      endDate = new Date(currentYear + 1, 2, 15, 23, 59, 59);
+    } else {
+      startDate = new Date(currentYear - 1, 2, 16);
+      endDate = new Date(currentYear, 2, 15, 23, 59, 59);
+    }
+
+    // 自分の「有給」または「半休」の件数をカウント
+    let count = 0;
+    allRecords.forEach(r => {
+      if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
+        // 日付文字列からDateオブジェクト作成 (例: "2026/08/24" や "2026-08-24 〜 ...")
+        const dateMatch = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/);
+        if (dateMatch) {
+          const recordDate = new Date(dateMatch[0].replace(/-/g, '/'));
+          if (recordDate >= startDate && recordDate <= endDate) {
+            count++;
+          }
+        }
+      }
+    });
+
+    document.getElementById('paidLeaveCount').innerText = count;
+    updatePaidLeaveCountUI();
+  }
+
+  function updatePaidLeaveCountUI() {
+    const count = document.getElementById('paidLeaveCount').innerText;
+    const infoEl = document.getElementById('paidLeaveInfo');
+    infoEl.innerHTML = `${i18nData[currentLang].paidCountMsg}<strong>${count}</strong>${i18nData[currentLang].countUnit}`;
   }
 
   function toggleOtherReason(isOther) {
@@ -796,17 +875,11 @@
 
     const type = document.querySelector('input[name="type"]:checked')?.value || '';
 
-    // 区分に応じて表示するメッセージを切り替え
-    let confirmMsg = "";
-    if (type === '遅刻' || type === '早退' || type === '中抜け') {
-      confirmMsg = i18nData[currentLang].alertTimecard;
-    } else {
-      confirmMsg = i18nData[currentLang].alertResend;
-    }
+    let confirmMsg = (type === '遅刻' || type === '早退' || type === '中抜け') 
+      ? i18nData[currentLang].alertTimecard 
+      : i18nData[currentLang].alertResend;
 
-    if (!confirm(confirmMsg)) {
-      return;
-    }
+    if (!confirm(confirmMsg)) return;
 
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.innerText = i18nData[currentLang].btnSending;
@@ -819,18 +892,11 @@
     if (type === '有給' || type === '欠勤') {
       const startDate = document.getElementById('startDate').value;
       const endDate = document.getElementById('endDate').value;
-      if (endDate && endDate !== startDate) {
-        datetime = `${startDate} 〜 ${endDate}`;
-      } else {
-        datetime = startDate;
-      }
+      datetime = (endDate && endDate !== startDate) ? `${startDate} 〜 ${endDate}` : startDate;
     } else if (type === '半休') {
-      const hDate = document.getElementById('halfDate').value;
-      const hAmpm = document.getElementById('halfAmpm').value;
-      datetime = `${hDate} ${hAmpm}`;
+      datetime = `${document.getElementById('halfDate').value} ${document.getElementById('halfAmpm').value}`;
     } else {
-      const rawDt = document.getElementById('targetDateTime').value;
-      datetime = rawDt.replace('T', ' ');
+      datetime = document.getElementById('targetDateTime').value.replace('T', ' ');
     }
 
     let reason = document.querySelector('input[name="reason"]:checked')?.value || '';
@@ -848,9 +914,7 @@
 
     fetch(GAS_WEB_APP_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: payload.toString()
     })
     .then(response => {
@@ -872,8 +936,18 @@
     submitBtn.innerText = i18nData[currentLang].btnSubmit;
     submitBtn.disabled = false;
     document.getElementById('startDate').valueAsDate = new Date();
+    document.getElementById('paidLeaveInfo').style.display = 'none';
     toggleDateInput('date');
     toggleOtherReason(false);
+  }
+
+  function preloadRecords() {
+    fetch(GAS_WEB_APP_URL + "?action=getRecords")
+    .then(res => res.json())
+    .then(data => {
+      allRecords = data;
+    })
+    .catch(err => console.log("Preload error"));
   }
 
   function fetchRecords() {
@@ -912,6 +986,7 @@
       const mgrText = isMgrApproved ? i18nData[currentLang].mgrOk : i18nData[currentLang].mgrNg;
       const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
 
+      // ※ 理由（reason）の行を削除しました
       html += `
         <div class="list-card">
           <div class="list-header">
@@ -922,8 +997,7 @@
             </div>
           </div>
           <div class="list-detail">
-            <strong>【${r.type}】</strong> ${r.datetime}<br>
-            <strong>${i18nData[currentLang].lblReason}:</strong> ${r.reason}
+            <strong>【${r.type}】</strong> ${r.datetime}
           </div>
         </div>
       `;
