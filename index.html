@@ -451,7 +451,7 @@
           </div>
 
           <div id="paidLeaveInfo" class="paid-leave-info">
-            📅 今年度の有給使用回数：<span id="paidLeaveCount">0</span> 回
+            📅 今年度の有給使用日数：<span id="paidLeaveCount">0</span> 回
           </div>
         </div>
 
@@ -568,8 +568,8 @@
       typeOut: "中抜け",
       lbl4Date: "4. 日付・時間",
       hintDateRange: "※1日のみの場合は終了日を空欄にしてください",
-      paidCountMsg: "📅 今年度の有給使用回数：",
-      countUnit: " 回",
+      paidCountMsg: "📅 今年度の有給使用日数：",
+      countUnit: " 日",
       optAm: "午前 (AM)",
       optPm: "午後 (PM)",
       lbl5Reason: "5. 理由",
@@ -632,8 +632,8 @@
       typeOut: "Vắng giữa giờ",
       lbl4Date: "4. Ngày / Giờ",
       hintDateRange: "※ Nếu nghỉ 1 ngày, để trống ngày kết thúc",
-      paidCountMsg: "📅 Số lần sử dụng nghỉ phép năm nay: ",
-      countUnit: " lần",
+      paidCountMsg: "📅 Số ngày nghỉ phép đã dùng năm nay: ",
+      countUnit: " ngày",
       optAm: "Sáng (AM)",
       optPm: "Chiều (PM)",
       lbl5Reason: "5. Lý do",
@@ -696,8 +696,8 @@
       typeOut: "Temporary Out",
       lbl4Date: "4. Date & Time",
       hintDateRange: "※ Leave end date blank for single-day requests",
-      paidCountMsg: "📅 Paid Leave used this fiscal year: ",
-      countUnit: " time(s)",
+      paidCountMsg: "📅 Paid Leave days used this fiscal year: ",
+      countUnit: " day(s)",
       optAm: "Morning (AM)",
       optPm: "Afternoon (PM)",
       lbl5Reason: "5. Reason",
@@ -891,20 +891,31 @@
       endDate = new Date(currentYear, 2, 15, 23, 59, 59);
     }
 
-    let count = 0;
+    let totalDays = 0;
     allRecords.forEach(r => {
       if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
-        const dateMatch = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/);
-        if (dateMatch) {
-          const recordDate = new Date(dateMatch[0].replace(/-/g, '/'));
-          if (recordDate >= startDate && recordDate <= endDate) {
-            count++;
+        // 日付形式（YYYY-MM-DD 〜 YYYY-MM-DD または YYYY-MM-DD）の抽出
+        const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
+        if (dateMatches) {
+          const recStart = new Date(dateMatches[0].replace(/-/g, '/'));
+          if (recStart >= startDate && recStart <= endDate) {
+            if (r.type === '半休') {
+              totalDays += 0.5;
+            } else if (dateMatches.length >= 2) {
+              const recEnd = new Date(dateMatches[1].replace(/-/g, '/'));
+              // 開始日〜終了日の日数計算（土日含む差分＋1日）
+              const diffTime = Math.abs(recEnd - recStart);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+              totalDays += diffDays;
+            } else {
+              totalDays += 1;
+            }
           }
         }
       }
     });
 
-    document.getElementById('paidLeaveCount').innerText = count;
+    document.getElementById('paidLeaveCount').innerText = totalDays;
     updatePaidLeaveCountUI();
   }
 
