@@ -529,7 +529,7 @@
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
 
   let currentLang = 'ja';
-  let userDeptJa = ''; // 元の日本語工程名を保持
+  let userDeptJa = '';
   let allRecords = [];
 
   const i18nData = {
@@ -609,7 +609,7 @@
       errAuthNet: "Lỗi kết nối mạng",
       tabSend: "Gửi thông báo",
       tabList: "Danh sách",
-      formTitle: "Liên lạc nghỉ làm",
+      formTitle: "Liên連絡 nghỉ làm",
       lbl1Name: "1. Họ và tên",
       lbl2Dept: "2. Công đoạn làm việc (Tự động điền)",
       deptQAInspect: "Kiểm tra ngoại quan QA",
@@ -727,7 +727,6 @@
     }
   };
 
-  // 日本語文字列から辞書キーを引くためのマップ
   const deptKeyMap = {
     "QA外観検査": "deptQAInspect",
     "QA寸法測定": "deptQAMeasure",
@@ -787,7 +786,6 @@
       }
     });
 
-    // フォーム上の自工程名も翻訳表示に更新
     if (userDeptJa) {
       document.getElementById('department').value = translateDept(userDeptJa, lang);
     }
@@ -913,7 +911,7 @@
   function updatePaidLeaveCountUI() {
     const count = document.getElementById('paidLeaveCount').innerText;
     const infoEl = document.getElementById('paidLeaveInfo');
-    infoEl.innerHTML = `${i18nData[currentLang].paidCountMsg}<strong>${count}</strong>${i18nData[currentLang].countUnit}`;
+    infoEl.innerHTML = `${i18nData[currentLang].paidCountMsg}<span id="paidLeaveCount">${count}</span>${i18nData[currentLang].countUnit}`;
   }
 
   function toggleOtherReason(isOther) {
@@ -939,7 +937,7 @@
     submitBtn.disabled = true;
 
     const name = document.getElementById('name').value;
-    const department = userDeptJa || document.getElementById('department').value; // スプレッドシートへは日本語で記録
+    const department = userDeptJa || document.getElementById('department').value;
     
     let datetime = '';
     if (type === '有給' || type === '欠勤') {
@@ -1045,7 +1043,6 @@
       const mgrText = isMgrApproved ? i18nData[currentLang].mgrOk : i18nData[currentLang].mgrNg;
       const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
 
-      // 工程名と種類を現在の言語に自動変換
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
