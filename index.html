@@ -190,7 +190,6 @@
       flex: 1;
     }
 
-    /* 有給取得回数メッセージバナー */
     .paid-leave-info {
       display: none;
       background: #eff6ff;
@@ -430,7 +429,6 @@
         <div class="form-group" id="dateInputArea">
           <label data-i18n="lbl4Date">4. 日付・時間</label>
 
-          <!-- 期間指定（有給・欠勤用） -->
           <div id="singleDateBlock">
             <div class="range-inputs">
               <input type="date" id="startDate" name="startDate">
@@ -452,7 +450,6 @@
             <input type="datetime-local" id="targetDateTime" name="targetDateTime">
           </div>
 
-          <!-- 有給使用回数メッセージバナー -->
           <div id="paidLeaveInfo" class="paid-leave-info">
             📅 今年度の有給使用回数：<span id="paidLeaveCount">0</span> 回
           </div>
@@ -532,6 +529,7 @@
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
 
   let currentLang = 'ja';
+  let userDeptJa = ''; // 元の日本語工程名を保持
   let allRecords = [];
 
   const i18nData = {
@@ -729,8 +727,45 @@
     }
   };
 
+  // 日本語文字列から辞書キーを引くためのマップ
+  const deptKeyMap = {
+    "QA外観検査": "deptQAInspect",
+    "QA寸法測定": "deptQAMeasure",
+    "外観検査": "deptInspect",
+    "画像検査": "deptImgInspect",
+    "総務": "deptGeneral",
+    "ダイシング": "deptDicing",
+    "トレイ詰・集計": "deptTray",
+    "担当窓口": "deptContact",
+    "密閉ボックス洗浄": "deptCleaning",
+    "ﾛｯﾄｶｰﾄﾞｽｷｬﾝ": "deptScan",
+    "ロットカードスキャン": "deptScan",
+    "通訳": "deptInterpreter"
+  };
+
+  const typeKeyMap = {
+    "有給": "typePaid",
+    "半休": "typeHalf",
+    "欠勤": "typeAbsent",
+    "遅刻": "typeLate",
+    "早退": "typeEarly",
+    "中抜け": "typeOut"
+  };
+
   document.getElementById('startDate').valueAsDate = new Date();
   document.getElementById('halfDate').valueAsDate = new Date();
+
+  function translateDept(deptJa, lang) {
+    if (!deptJa) return i18nData[lang].unset;
+    const key = deptKeyMap[deptJa.trim()];
+    return (key && i18nData[lang][key]) ? i18nData[lang][key] : deptJa;
+  }
+
+  function translateType(typeJa, lang) {
+    if (!typeJa) return typeJa;
+    const key = typeKeyMap[typeJa.trim()];
+    return (key && i18nData[lang][key]) ? i18nData[lang][key] : typeJa;
+  }
 
   function setLanguage(lang) {
     currentLang = lang;
@@ -751,6 +786,11 @@
         el.placeholder = i18nData[lang][key];
       }
     });
+
+    // フォーム上の自工程名も翻訳表示に更新
+    if (userDeptJa) {
+      document.getElementById('department').value = translateDept(userDeptJa, lang);
+    }
 
     updatePaidLeaveCountUI();
 
@@ -779,8 +819,9 @@
     .then(res => res.json())
     .then(data => {
       if (data.success) {
+        userDeptJa = data.department || '';
         document.getElementById('name').value = data.userName;
-        document.getElementById('department').value = data.department || i18nData[currentLang].unset;
+        document.getElementById('department').value = translateDept(userDeptJa, currentLang);
 
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
@@ -898,7 +939,7 @@
     submitBtn.disabled = true;
 
     const name = document.getElementById('name').value;
-    const department = document.getElementById('department').value;
+    const department = userDeptJa || document.getElementById('department').value; // スプレッドシートへは日本語で記録
     
     let datetime = '';
     if (type === '有給' || type === '欠勤') {
@@ -942,12 +983,11 @@
 
   function resetForm() {
     const savedName = document.getElementById('name').value;
-    const savedDept = document.getElementById('department').value;
     
     document.getElementById('attendanceForm').reset();
     
     document.getElementById('name').value = savedName;
-    document.getElementById('department').value = savedDept;
+    document.getElementById('department').value = translateDept(userDeptJa, currentLang);
 
     document.getElementById('attendanceForm').style.display = 'block';
     document.getElementById('successMessage').style.display = 'none';
@@ -1005,17 +1045,21 @@
       const mgrText = isMgrApproved ? i18nData[currentLang].mgrOk : i18nData[currentLang].mgrNg;
       const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
 
+      // 工程名と種類を現在の言語に自動変換
+      const displayDept = translateDept(r.department, currentLang);
+      const displayType = translateType(r.type, currentLang);
+
       html += `
         <div class="list-card">
           <div class="list-header">
-            <span class="list-name">${r.name} <span class="list-dept">${r.department}</span></span>
+            <span class="list-name">${r.name} <span class="list-dept">${displayDept}</span></span>
             <div class="badge-group">
               <span class="badge ${mgrBadgeClass}">${mgrText}</span>
               <span class="badge ${facBadgeClass}">${facText}</span>
             </div>
           </div>
           <div class="list-detail">
-            <strong>【${r.type}】</strong> ${r.datetime}
+            <strong>【${displayType}】</strong> ${r.datetime}
           </div>
         </div>
       `;
