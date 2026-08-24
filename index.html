@@ -394,14 +394,7 @@
 
         <div class="form-group">
           <label data-i18n="lbl2Dept">2. あなたの工程</label>
-          <select id="department" name="department" required>
-            <option value="" data-i18n="optSelect">-- 選んでください --</option>
-            <option value="事務所" data-i18n="deptOffice">事務所</option>
-            <option value="検査" data-i18n="deptInspect">検査</option>
-            <option value="ダイシング" data-i18n="deptDicing">ダイシング</option>
-            <option value="密閉ボックス洗浄" data-i18n="deptCleaning">密閉ボックス洗浄</option>
-            <option value="スキャン" data-i18n="deptScan">スキャン</option>
-          </select>
+          <input type="text" id="department" name="department" readonly style="background-color: #f1f5f9;" required>
         </div>
 
         <div class="form-group">
@@ -511,11 +504,17 @@
           <input type="date" id="filterDate" onchange="filterList()">
           <select id="filterDept" onchange="filterList()">
             <option value="" data-i18n="filterAllDept">すべての工程</option>
-            <option value="事務所" data-i18n="deptOffice">事務所</option>
-            <option value="検査" data-i18n="deptInspect">検査</option>
+            <option value="QA外観検査" data-i18n="deptQAInspect">QA外観検査</option>
+            <option value="QA寸法測定" data-i18n="deptQAMeasure">QA寸法測定</option>
+            <option value="外観検査" data-i18n="deptInspect">外観検査</option>
+            <option value="画像検査" data-i18n="deptImgInspect">画像検査</option>
+            <option value="総務" data-i18n="deptGeneral">総務</option>
             <option value="ダイシング" data-i18n="deptDicing">ダイシング</option>
+            <option value="トレイ詰・集計" data-i18n="deptTray">トレイ詰・集計</option>
+            <option value="担当窓口" data-i18n="deptContact">担当窓口</option>
             <option value="密閉ボックス洗浄" data-i18n="deptCleaning">密閉ボックス洗浄</option>
-            <option value="スキャン" data-i18n="deptScan">スキャン</option>
+            <option value="ﾛｯﾄｶｰﾄﾞｽｷｬﾝ" data-i18n="deptScan">ﾛｯﾄｶｰﾄﾞｽｷｬﾝ</option>
+            <option value="通訳" data-i18n="deptInterpreter">通訳</option>
           </select>
         </div>
         <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer;" data-i18n="btnClearFilter">検索クリア</button>
@@ -550,13 +549,18 @@
       tabList: "連絡一覧",
       formTitle: "勤怠・連絡",
       lbl1Name: "1. お名前",
-      lbl2Dept: "2. あなたの工程",
-      optSelect: "-- 選んでください --",
-      deptOffice: "事務所",
-      deptInspect: "検査",
+      lbl2Dept: "2. あなたの工程（自動入力）",
+      deptQAInspect: "QA外観検査",
+      deptQAMeasure: "QA寸法測定",
+      deptInspect: "外観検査",
+      deptImgInspect: "画像検査",
+      deptGeneral: "総務",
       deptDicing: "ダイシング",
+      deptTray: "トレイ詰・集計",
+      deptContact: "担当窓口",
       deptCleaning: "密閉ボックス洗浄",
-      deptScan: "スキャン",
+      deptScan: "ﾛｯﾄｶｰﾄﾞｽｷｬﾝ",
+      deptInterpreter: "通訳",
       lbl3Type: "3. 連絡の種類",
       typePaid: "有給",
       typeHalf: "半休",
@@ -592,7 +596,8 @@
       facOk: "工場長: 承認済",
       facNg: "工場長: 未承認",
       alertTimecard: "⏰【確認・注意】\n・タイムカードの打刻を忘れずに行ってください！✨\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
-      alertResend: "⏰【確認】\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？"
+      alertResend: "⏰【確認】\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
+      unset: "未設定"
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
@@ -608,13 +613,18 @@
       tabList: "Danh sách",
       formTitle: "Liên lạc nghỉ làm",
       lbl1Name: "1. Họ và tên",
-      lbl2Dept: "2. Công đoạn làm việc",
-      optSelect: "-- Vui lòng chọn --",
-      deptOffice: "Văn phòng (事務所)",
-      deptInspect: "Kiểm tra (検査)",
-      deptDicing: "Cắt (ダイシング)",
-      deptCleaning: "Rửa thùng (密閉ボックス洗浄)",
-      deptScan: "Scan (スキャン)",
+      lbl2Dept: "2. Công đoạn làm việc (Tự động điền)",
+      deptQAInspect: "Kiểm tra ngoại quan QA",
+      deptQAMeasure: "Đo kích thước QA",
+      deptInspect: "Kiểm tra ngoại quan",
+      deptImgInspect: "Kiểm tra hình ảnh",
+      deptGeneral: "Tổng vụ",
+      deptDicing: "Cắt",
+      deptTray: "Chèn vào khay/Thống kê",
+      deptContact: "Phụ trách liên lạc với KC",
+      deptCleaning: "Rửa thùng kín khí",
+      deptScan: "Scan thẻ lô",
+      deptInterpreter: "Phiên dịch",
       lbl3Type: "3. Loại liên lạc",
       typePaid: "Nghỉ phép",
       typeHalf: "Nghỉ nửa ngày",
@@ -650,7 +660,8 @@
       facOk: "Xưởng trưởng: Đã duyệt",
       facNg: "Xưởng trưởng: Chờ duyệt",
       alertTimecard: "⏰【Chú ý】\n・Hãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
-      alertResend: "⏰【Xác nhận】\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?"
+      alertResend: "⏰【Xác nhận】\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
+      unset: "Chưa thiết lập"
     },
     en: {
       authTitle: "Authentication",
@@ -666,13 +677,18 @@
       tabList: "Notice List",
       formTitle: "Absence Notice",
       lbl1Name: "1. Full Name",
-      lbl2Dept: "2. Department",
-      optSelect: "-- Select Department --",
-      deptOffice: "Office",
-      deptInspect: "Inspection",
+      lbl2Dept: "2. Department (Auto)",
+      deptQAInspect: "QA Visual Inspection",
+      deptQAMeasure: "QA Dimension Measurement",
+      deptInspect: "Visual Inspection",
+      deptImgInspect: "Image Inspection",
+      deptGeneral: "General Affairs",
       deptDicing: "Dicing",
-      deptCleaning: "Box Washing",
-      deptScan: "Scan",
+      deptTray: "Tray Packing & Tally",
+      deptContact: "Contact Window",
+      deptCleaning: "Sealed Box Washing",
+      deptScan: "Lot Card Scan",
+      deptInterpreter: "Interpretation",
       lbl3Type: "3. Type of Notice",
       typePaid: "Paid Leave",
       typeHalf: "Half Day",
@@ -708,7 +724,8 @@
       facOk: "Plant Mgr: Approved",
       facNg: "Plant Mgr: Pending",
       alertTimecard: "⏰【Notice】\n・Please remember to punch your Timecard! ✨\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
-      alertResend: "⏰【Confirm】\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?"
+      alertResend: "⏰【Confirm】\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
+      unset: "Not set"
     }
   };
 
@@ -735,7 +752,6 @@
       }
     });
 
-    // 有給メッセージ更新
     updatePaidLeaveCountUI();
 
     if (allRecords.length > 0) {
@@ -764,9 +780,10 @@
     .then(data => {
       if (data.success) {
         document.getElementById('name').value = data.userName;
+        document.getElementById('department').value = data.department || i18nData[currentLang].unset;
+
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
-        // ログイン完了時に全データバックグラウンド取得（有給カウント計算用）
         preloadRecords();
       } else {
         errEl.innerText = i18nData[currentLang].errAuthFail;
@@ -807,7 +824,6 @@
     document.getElementById('halfDateBlock').style.display = (mode === 'half') ? 'block' : 'none';
     document.getElementById('dateTimeBlock').style.display = (mode === 'datetime') ? 'block' : 'none';
 
-    // 有給または半休が選ばれた場合のみカウント表示
     const selectedType = document.querySelector('input[name="type"]:checked')?.value;
     const paidInfoEl = document.getElementById('paidLeaveInfo');
     if (selectedType === '有給' || selectedType === '半休') {
@@ -818,7 +834,6 @@
     }
   }
 
-  // 今年度（3/16〜翌3/15）の起算日を考慮して有給カウントを判定
   function calculatePaidLeaveCount() {
     const userName = document.getElementById('name').value;
     if (!userName || allRecords.length === 0) return;
@@ -826,9 +841,8 @@
     const today = new Date();
     const currentYear = today.getFullYear();
     
-    // 今年度の3月16日〜翌年3月15日を設定
     let startDate, endDate;
-    const fiscalStartThisYear = new Date(currentYear, 2, 16); // 3月16日 (月は0始まりのため2)
+    const fiscalStartThisYear = new Date(currentYear, 2, 16);
 
     if (today >= fiscalStartThisYear) {
       startDate = new Date(currentYear, 2, 16);
@@ -838,11 +852,9 @@
       endDate = new Date(currentYear, 2, 15, 23, 59, 59);
     }
 
-    // 自分の「有給」または「半休」の件数をカウント
     let count = 0;
     allRecords.forEach(r => {
       if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
-        // 日付文字列からDateオブジェクト作成 (例: "2026/08/24" や "2026-08-24 〜 ...")
         const dateMatch = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/);
         if (dateMatch) {
           const recordDate = new Date(dateMatch[0].replace(/-/g, '/'));
@@ -929,7 +941,14 @@
   });
 
   function resetForm() {
+    const savedName = document.getElementById('name').value;
+    const savedDept = document.getElementById('department').value;
+    
     document.getElementById('attendanceForm').reset();
+    
+    document.getElementById('name').value = savedName;
+    document.getElementById('department').value = savedDept;
+
     document.getElementById('attendanceForm').style.display = 'block';
     document.getElementById('successMessage').style.display = 'none';
     const submitBtn = document.getElementById('submitBtn');
@@ -986,7 +1005,6 @@
       const mgrText = isMgrApproved ? i18nData[currentLang].mgrOk : i18nData[currentLang].mgrNg;
       const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
 
-      // ※ 理由（reason）の行を削除しました
       html += `
         <div class="list-card">
           <div class="list-header">
