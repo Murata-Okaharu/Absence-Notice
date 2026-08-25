@@ -514,7 +514,7 @@
 
           <div id="singleDateBlock">
             <div class="range-inputs">
-              <input type="date" id="startDate" name="startDate">
+              <input type="date" id="startDate" name="startDate" onchange="checkSameDay()">
               <span id="rangeSeparator">〜</span>
               <input type="date" id="endDate" name="endDate" placeholder="終了日（任意）">
             </div>
@@ -522,7 +522,7 @@
           </div>
 
           <div id="halfDateBlock" style="display: none;">
-            <input type="date" id="halfDate" name="halfDate" style="margin-bottom: 8px;">
+            <input type="date" id="halfDate" name="halfDate" style="margin-bottom: 8px;" onchange="checkSameDay()">
             <select id="halfAmpm" name="halfAmpm">
               <option value="午前 (AM)" data-i18n="optAm">午前 (AM)</option>
               <option value="午後 (PM)" data-i18n="optPm">午後 (PM)</option>
@@ -530,7 +530,12 @@
           </div>
 
           <div id="dateTimeBlock" style="display: none;">
-            <input type="datetime-local" id="targetDateTime" name="targetDateTime">
+            <input type="datetime-local" id="targetDateTime" name="targetDateTime" onchange="checkSameDay()">
+          </div>
+
+          <!-- 当日申請時の警告メッセージ枠 -->
+          <div id="sameDayWarning" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ef4444; background-color: #fef2f2; border-radius: 8px; color: #dc2626; font-size: 0.85rem; font-weight: bold;">
+            <span data-i18n="msgSameDayNotice">⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。</span>
           </div>
 
           <div id="paidLeaveInfo" class="paid-leave-info">
@@ -652,6 +657,7 @@
       typeOut: "中抜け",
       lbl4Date: "4. 日付・時間",
       hintDateRange: "※1日のみの場合は終了日を空欄にしてください",
+      msgSameDayNotice: "⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。",
       paidCountMsg: "📅 今年度の有給使用日数：",
       countUnit: " 日",
       optAm: "午前 (AM)",
@@ -719,6 +725,7 @@
       typeOut: "Vắng giữa giờ",
       lbl4Date: "4. Ngày / Giờ",
       hintDateRange: "※ Nếu nghỉ 1 ngày, để trống ngày kết thúc",
+      msgSameDayNotice: "⚠️ Nguyên tắc phải đăng ký và được duyệt trước. Trường hợp đăng ký trong ngày, ngoài việc gửi vào hệ thống này, vui lòng LIÊN HỆ TRỰC TIẾP cho người quản lý.",
       paidCountMsg: "📅 Số ngày nghỉ phép đã dùng năm nay: ",
       countUnit: " ngày",
       optAm: "Sáng (AM)",
@@ -786,6 +793,7 @@
       typeOut: "Temporary Out",
       lbl4Date: "4. Date & Time",
       hintDateRange: "※ Leave end date blank for single-day requests",
+      msgSameDayNotice: "⚠️ Prior application and approval are required in principle. For same-day requests, please CONTACT YOUR MANAGER DIRECTLY in addition to submitting this form.",
       paidCountMsg: "📅 Paid Leave days used this fiscal year: ",
       countUnit: " day(s)",
       optAm: "Morning (AM)",
@@ -918,6 +926,7 @@
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         preloadRecords();
+        checkSameDay();
       } else {
         errEl.innerText = i18nData[currentLang].errAuthFail;
         errEl.style.display = 'block';
@@ -952,6 +961,33 @@
     }
   }
 
+  function checkSameDay() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+    const type = document.querySelector('input[name="type"]:checked')?.value || '';
+    let selectedDateStr = '';
+
+    if (type === '有給' || type === '欠勤') {
+      selectedDateStr = document.getElementById('startDate').value;
+    } else if (type === '半休') {
+      selectedDateStr = document.getElementById('halfDate').value;
+    } else if (type === '遅刻' || type === '早退' || type === '中抜け') {
+      const val = document.getElementById('targetDateTime').value;
+      if (val) selectedDateStr = val.split('T')[0];
+    }
+
+    const warningEl = document.getElementById('sameDayWarning');
+    if (selectedDateStr && selectedDateStr === todayStr) {
+      warningEl.style.display = 'block';
+    } else {
+      warningEl.style.display = 'none';
+    }
+  }
+
   function toggleDateInput(mode) {
     document.getElementById('singleDateBlock').style.display = (mode === 'date') ? 'block' : 'none';
     document.getElementById('halfDateBlock').style.display = (mode === 'half') ? 'block' : 'none';
@@ -965,6 +1001,8 @@
     } else {
       paidInfoEl.style.display = 'none';
     }
+
+    checkSameDay();
   }
 
   function calculatePaidLeaveCount() {
