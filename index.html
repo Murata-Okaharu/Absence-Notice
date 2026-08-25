@@ -341,7 +341,6 @@
       line-height: 1.4;
     }
 
-    /* メッセージエリア */
     .msg-toggle-btn {
       margin-top: 8px;
       width: 100%;
@@ -615,7 +614,7 @@
   let currentLang = 'ja';
   let userDeptJa = '';
   let allRecords = [];
-  let isUserAdmin = false; // 管理者（工場長）フラグ
+  let isUserAdmin = false;
 
   const i18nData = {
     ja: {
@@ -912,7 +911,7 @@
     .then(data => {
       if (data.success) {
         userDeptJa = data.department || '';
-        isUserAdmin = !!data.isAdmin; // 管理者（工場長）フラグを取得
+        isUserAdmin = !!data.isAdmin;
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
 
@@ -1159,7 +1158,6 @@
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
-      // ★ 閲覧権限判定：申請者本人 または 工場長（管理者）のみメッセージ表示
       const isOwner = (r.name === currentUserName);
       const canAccessMessage = isOwner || isUserAdmin;
 
@@ -1255,7 +1253,6 @@
     payload.append('action', 'addMessage');
     payload.append('recordId', recordId);
     payload.append('sender', userName);
-    // ★ 管理者なら「Manager」、一般ユーザーなら「Applicant」として送信
     payload.append('role', isUserAdmin ? 'Manager' : 'Applicant');
     payload.append('message', message);
 
