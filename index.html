@@ -441,7 +441,7 @@
     
     <div class="auth-group">
       <label data-i18n="lblEmpId">社員ID</label>
-      <input type="text" id="empIdInput" class="auth-input" placeholder="1001">
+      <input type="text" id="empIdInput" class="auth-input" placeholder="0015">
     </div>
 
     <div class="auth-group">
@@ -606,6 +606,7 @@
             <option value="密閉ボックス洗浄" data-i18n="deptCleaning">密閉ボックス洗浄</option>
             <option value="ﾛｯﾄｶｰﾄﾞｽｷｬﾝ" data-i18n="deptScan">ﾛｯﾄｶｰﾄﾞｽｷｬﾝ</option>
             <option value="通訳" data-i18n="deptInterpreter">通訳</option>
+            <option value="インフラ" data-i18n="deptInfra">インフラ</option>
           </select>
         </div>
         
@@ -621,6 +622,7 @@
 </div>
 
 <script>
+  // ※ご自身のGASウェブアプリURLを指定
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
 
   let currentLang = 'ja';
@@ -655,6 +657,7 @@
       deptCleaning: "密閉ボックス洗浄",
       deptScan: "ﾛｯﾄｶｰﾄﾞｽｷｬﾝ",
       deptInterpreter: "通訳",
+      deptInfra: "インフラ",
       lbl3Type: "3. 連絡の種類",
       typePaid: "有給",
       typeHalf: "半休",
@@ -726,6 +729,7 @@
       deptCleaning: "Rửa thùng kín khí",
       deptScan: "Scan thẻ lô",
       deptInterpreter: "Phiên dịch",
+      deptInfra: "Cơ sở hạ tầng",
       lbl3Type: "3. Loại liên lạc",
       typePaid: "Nghỉ phép",
       typeHalf: "Nghỉ nửa ngày phép",
@@ -797,6 +801,7 @@
       deptCleaning: "Sealed Box Washing",
       deptScan: "Lot Card Scan",
       deptInterpreter: "Interpretation",
+      deptInfra: "Infrastructure",
       lbl3Type: "3. Type of Notice",
       typePaid: "Paid Leave",
       typeHalf: "Half Day",
@@ -856,7 +861,8 @@
     "密閉ボックス洗浄": "deptCleaning",
     "ﾛｯﾄｶｰﾄﾞｽｷｬﾝ": "deptScan",
     "ロットカードスキャン": "deptScan",
-    "通訳": "deptInterpreter"
+    "通訳": "deptInterpreter",
+    "インフラ": "deptInfra"
   };
 
   const typeKeyMap = {
@@ -1347,19 +1353,16 @@
     const currentUserName = document.getElementById('name').value;
 
     const filtered = allRecords.filter(r => {
-      // 1. 個人別の絞り込み（「自分の表示」が選ばれている時だけ自分のみ抽出）
       if (scope === 'me' && r.name !== currentUserName) {
         return false;
       }
 
-      // 2. 日付の絞り込み
       let matchDate = true;
       if (selectedDate && r.datetime) {
         const formattedTargetDate = r.datetime.replace(/\//g, '-');
         matchDate = formattedTargetDate.includes(selectedDate);
       }
 
-      // 3. 工程の絞り込み
       const matchDept = !selectedDept || r.department === selectedDept;
 
       return matchDate && matchDept;
