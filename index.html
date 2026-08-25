@@ -346,15 +346,13 @@
       width: 100%;
       padding: 6px 10px;
       font-size: 0.8rem;
-      background: #e2e8f0;
-      border: none;
       border-radius: 6px;
       cursor: pointer;
-      color: #334155;
       font-weight: bold;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: background-color 0.2s, border-color 0.2s;
     }
 
     .msg-container {
@@ -697,7 +695,8 @@
       alertTimecard: "⏰【確認・注意】\n・タイムカードの打刻を忘れずに行ってください！✨\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
       alertResend: "⏰【確認】\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
       unset: "未設定",
-      btnMsgOpen: "💬 工場長とのメッセージ",
+      btnMsgOpen: "💬 メッセージ送信",
+      btnMsgHasCount: "💬 メッセージあり ({count}件)",
       phMsgInput: "メッセージを入力...",
       btnMsgSend: "送信"
     },
@@ -767,7 +766,8 @@
       alertTimecard: "⏰【Chú ý】\n・Hãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
       alertResend: "⏰【Xác nhận】\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
       unset: "Chưa thiết lập",
-      btnMsgOpen: "💬 Tin nhắn với Xưởng trưởng",
+      btnMsgOpen: "💬 Gửi tin nhắn",
+      btnMsgHasCount: "💬 Có tin nhắn ({count})",
       phMsgInput: "Nhập tin nhắn...",
       btnMsgSend: "Gửi"
     },
@@ -837,7 +837,8 @@
       alertTimecard: "⏰【Notice】\n・Please remember to punch your Timecard! ✨\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
       alertResend: "⏰【Confirm】\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
       unset: "Not set",
-      btnMsgOpen: "💬 Message with Plant Manager",
+      btnMsgOpen: "💬 Send Message",
+      btnMsgHasCount: "💬 Messages ({count})",
       phMsgInput: "Type a message...",
       btnMsgSend: "Send"
     }
@@ -1216,9 +1217,21 @@
 
       let msgAreaHtml = '';
       if (canAccessMessage) {
+        const count = r.msgCount || 0;
+        let btnText = '';
+        let btnStyle = '';
+
+        if (count > 0) {
+          btnText = i18nData[currentLang].btnMsgHasCount.replace('{count}', count);
+          btnStyle = 'background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;';
+        } else {
+          btnText = i18nData[currentLang].btnMsgOpen;
+          btnStyle = 'background: #e2e8f0; color: #334155; border: 1px solid transparent;';
+        }
+
         msgAreaHtml = `
-          <button class="msg-toggle-btn" onclick="toggleMessageBox('${r.id}')">
-            <span>${i18nData[currentLang].btnMsgOpen}</span>
+          <button class="msg-toggle-btn" style="${btnStyle}" onclick="toggleMessageBox('${r.id}')">
+            <span id="msgBtnText_${r.id}">${btnText}</span>
             <span>▼</span>
           </button>
 
@@ -1319,6 +1332,7 @@
       inputEl.value = '';
       inputEl.disabled = false;
       loadChatMessages(recordId);
+      fetchRecords();
     })
     .catch(err => {
       alert("メッセージの送信に失敗しました");
