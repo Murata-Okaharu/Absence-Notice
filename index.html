@@ -586,7 +586,15 @@
 
       <div class="filter-box">
         <div class="filter-row">
+          <!-- 表示対象の切り替えセレクトボックス -->
+          <select id="filterUserScope" onchange="filterList()">
+            <option value="me" selected data-i18n="optScopeMe">自分の表示</option>
+            <option value="all" data-i18n="optScopeAll">全員を表示</option>
+          </select>
           <input type="date" id="filterDate" onchange="filterList()">
+        </div>
+        
+        <div class="filter-row" style="margin-bottom: 0;">
           <select id="filterDept" onchange="filterList()">
             <option value="" data-i18n="filterAllDept">すべての工程</option>
             <option value="QA外観検査" data-i18n="deptQAInspect">QA外観検査</option>
@@ -602,7 +610,8 @@
             <option value="通訳" data-i18n="deptInterpreter">通訳</option>
           </select>
         </div>
-        <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer;" data-i18n="btnClearFilter">検索クリア</button>
+        
+        <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px;" data-i18n="btnClearFilter">検索クリア</button>
       </div>
 
       <div id="recordsContainer">
@@ -674,6 +683,8 @@
       msgNotified: "管理者に通知されました。",
       btnAgain: "もう一度入力する",
       listTitle: "連絡一覧・承認状況",
+      optScopeMe: "自分の表示",
+      optScopeAll: "全員を表示",
       filterAllDept: "すべての工程",
       btnClearFilter: "検索クリア",
       msgLoading: "読み込み中...",
@@ -692,13 +703,13 @@
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
-      authSub: "Vui lòng nhập Mã số NV và Mật khẩu",
+      authSub: "Vui lòng nhập Mã số nhân viên và Mật khẩu",
       lblEmpId: "Mã số nhân viên",
       lblPass: "Mật khẩu (4 số của tháng và ngày)",
       btnLogin: "Đăng nhập",
-      errAuthBlank: "Vui lòng nhập Mã số NV và Mật khẩu",
+      errAuthBlank: "Vui lòng nhập Mã số nhân viên và Mật khẩu",
       errAuthCheck: "Đang kiểm tra...",
-      errAuthFail: "Mã số NV hoặc Mật khẩu không đúng",
+      errAuthFail: "Mã số nhân viên hoặc Mật khẩu không đúng",
       errAuthNet: "Lỗi kết nối mạng",
       tabSend: "Gửi thông báo",
       tabList: "Danh sách",
@@ -742,6 +753,8 @@
       msgNotified: "Đã thông báo cho quản lý.",
       btnAgain: "Nhập lại",
       listTitle: "Danh sách & Trạng thái",
+      optScopeMe: "Chỉ của tôi",
+      optScopeAll: "Tất cả mọi người",
       filterAllDept: "Tất cả công đoạn",
       btnClearFilter: "Xóa lọc",
       msgLoading: "Đang tải...",
@@ -810,6 +823,8 @@
       msgNotified: "Manager has been notified.",
       btnAgain: "Submit Another",
       listTitle: "Notice List & Status",
+      optScopeMe: "My Requests",
+      optScopeAll: "All Requests",
       filterAllDept: "All Departments",
       btnClearFilter: "Clear Filter",
       msgLoading: "Loading...",
@@ -1312,17 +1327,27 @@
   }
 
   function filterList() {
+    const scope = document.getElementById('filterUserScope').value;
     const selectedDate = document.getElementById('filterDate').value;
     const selectedDept = document.getElementById('filterDept').value;
+    const currentUserName = document.getElementById('name').value;
 
     const filtered = allRecords.filter(r => {
+      // 1. 個人別の絞り込み（「自分の表示」が選ばれている時だけ自分のみ抽出）
+      if (scope === 'me' && r.name !== currentUserName) {
+        return false;
+      }
+
+      // 2. 日付の絞り込み
       let matchDate = true;
       if (selectedDate && r.datetime) {
         const formattedTargetDate = r.datetime.replace(/\//g, '-');
         matchDate = formattedTargetDate.includes(selectedDate);
       }
 
+      // 3. 工程の絞り込み
       const matchDept = !selectedDept || r.department === selectedDept;
+
       return matchDate && matchDept;
     });
 
@@ -1330,9 +1355,10 @@
   }
 
   function clearFilter() {
+    document.getElementById('filterUserScope').value = 'me';
     document.getElementById('filterDate').value = '';
     document.getElementById('filterDept').value = '';
-    renderRecords(allRecords.slice(0, 30));
+    filterList();
   }
 </script>
 
