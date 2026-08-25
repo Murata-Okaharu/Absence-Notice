@@ -341,6 +341,15 @@
       line-height: 1.4;
     }
 
+    .list-reason {
+      margin-top: 4px;
+      font-size: 0.8rem;
+      color: #64748b;
+      background: #f8fafc;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
     .msg-toggle-btn {
       margin-top: 8px;
       width: 100%;
@@ -531,7 +540,6 @@
             <input type="datetime-local" id="targetDateTime" name="targetDateTime" onchange="checkSameDay()">
           </div>
 
-          <!-- 当日申請時の警告メッセージ枠 -->
           <div id="sameDayWarning" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ef4444; background-color: #fef2f2; border-radius: 8px; color: #dc2626; font-size: 0.85rem; font-weight: bold;">
             <span data-i18n="msgSameDayNotice">⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。</span>
           </div>
@@ -584,7 +592,6 @@
 
       <div class="filter-box">
         <div class="filter-row">
-          <!-- 表示対象の切り替えセレクトボックス -->
           <select id="filterUserScope" onchange="filterList()">
             <option value="me" selected data-i18n="optScopeMe">自分の表示</option>
             <option value="all" data-i18n="optScopeAll">全員を表示</option>
@@ -622,7 +629,6 @@
 </div>
 
 <script>
-  // ※ご自身のGASウェブアプリURLを指定
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
 
   let currentLang = 'ja';
@@ -701,7 +707,8 @@
       btnMsgOpen: "💬 メッセージ送信",
       btnMsgHasCount: "💬 メッセージあり ({count}件)",
       phMsgInput: "メッセージを入力...",
-      btnMsgSend: "送信"
+      btnMsgSend: "送信",
+      lblReasonTitle: "理由:"
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
@@ -773,7 +780,8 @@
       btnMsgOpen: "💬 Gửi tin nhắn",
       btnMsgHasCount: "💬 Có tin nhắn ({count})",
       phMsgInput: "Nhập tin nhắn...",
-      btnMsgSend: "Gửi"
+      btnMsgSend: "Gửi",
+      lblReasonTitle: "Lý do:"
     },
     en: {
       authTitle: "Authentication",
@@ -845,7 +853,8 @@
       btnMsgOpen: "💬 Send Message",
       btnMsgHasCount: "💬 Messages ({count})",
       phMsgInput: "Type a message...",
-      btnMsgSend: "Send"
+      btnMsgSend: "Send",
+      lblReasonTitle: "Reason:"
     }
   };
 
@@ -1169,7 +1178,8 @@
   }
 
   function preloadRecords() {
-    fetch(GAS_WEB_APP_URL + "?action=getRecords")
+    const currentUserName = document.getElementById('name').value;
+    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
     .then(res => res.json())
     .then(data => {
       allRecords = data;
@@ -1181,7 +1191,8 @@
     const container = document.getElementById('recordsContainer');
     container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
 
-    fetch(GAS_WEB_APP_URL + "?action=getRecords")
+    const currentUserName = document.getElementById('name').value;
+    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
     .then(res => res.json())
     .then(data => {
       allRecords = data;
@@ -1219,10 +1230,17 @@
       const displayType = translateType(r.type, currentLang);
 
       const isOwner = (r.name === currentUserName);
-      const canAccessMessage = isOwner || isUserAdmin;
+      const canAccessPrivateInfo = isOwner || isUserAdmin;
 
+      // 理由の表示判定
+      let reasonHtml = '';
+      if (canAccessPrivateInfo && r.reason) {
+        reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
+      }
+
+      // メッセージ（チャット機能）の表示判定
       let msgAreaHtml = '';
-      if (canAccessMessage) {
+      if (canAccessPrivateInfo) {
         const count = r.msgCount || 0;
         let btnText = '';
         let btnStyle = '';
@@ -1265,6 +1283,7 @@
           <div class="list-detail">
             <strong>【${displayType}】</strong> ${r.datetime}
           </div>
+          ${reasonHtml}
           ${msgAreaHtml}
         </div>
       `;
