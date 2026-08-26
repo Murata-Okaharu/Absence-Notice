@@ -303,6 +303,11 @@
 </div>
 
 <script>
+  // ----------------------------------------------------
+  // ★重要: 以下にGASの最新ウェブアプリURL（末尾が /exec のもの）を貼り付けてください
+  // ----------------------------------------------------
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
+
   let currentUser = null;
   let activeRecId = null;
 
@@ -315,7 +320,14 @@
       return;
     }
 
-    fetch(`?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`)
+    if (GAS_URL.includes("YOUR_SCRIPT_ID")) {
+      alert("JavaScript内の GAS_URL 変数にWebアプリのURLを設定してください。");
+      return;
+    }
+
+    const url = `${GAS_URL}?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`;
+
+    fetch(url, { redirect: "follow" })
       .then(res => res.json())
       .then(data => {
         if (data.error) {
@@ -364,16 +376,16 @@
     const startDate  = document.getElementById("startDate").value;
     const endDate    = document.getElementById("endDate").value;
 
-    let url = `?action=getRecords&empName=${encodeURIComponent(currentUser.userName)}&isAdmin=${currentUser.isAdmin}`;
+    let url = `${GAS_URL}?action=getRecords&empName=${encodeURIComponent(currentUser.userName)}&isAdmin=${currentUser.isAdmin}`;
     if (searchDate) url += `&searchDate=${searchDate}`;
     if (startDate)  url += `&startDate=${startDate}`;
     if (endDate)    url += `&endDate=${endDate}`;
 
-    fetch(url)
+    fetch(url, { redirect: "follow" })
       .then(res => res.json())
       .then(records => {
         tbody.innerHTML = "";
-        if (records.length === 0) {
+        if (!Array.isArray(records) || records.length === 0) {
           tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">該当するデータがありません。</td></tr>';
           return;
         }
@@ -396,6 +408,9 @@
           `;
           tbody.appendChild(tr);
         });
+      })
+      .catch(err => {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">データの読み込みに失敗しました。</td></tr>';
       });
   }
 
@@ -407,21 +422,31 @@
     const reason = document.getElementById("app-reason").value;
 
     const formData = new URLSearchParams();
+    formData.append("action", "apply");
     formData.append("name", currentUser.userName);
     formData.append("department", currentUser.department);
     formData.append("type", type);
     formData.append("datetime", datetime);
     formData.append("reason", reason);
 
-    fetch("", { method: "POST", body: formData })
+    fetch(GAS_URL, {
+      method: "POST",
+      mode: "cors",
+      redirect: "follow",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData
+    })
       .then(res => res.json())
       .then(res => {
         if (res.success) {
           alert("申請を送信しました。");
           document.getElementById("apply-form").reset();
           loadRecords();
+        } else {
+          alert("送信エラー: " + (res.message || "処理に失敗しました。"));
         }
-      });
+      })
+      .catch(err => alert("通信エラーが発生しました:\n" + err.message));
   }
 
   function openMsgModal(recId) {
@@ -439,11 +464,11 @@
     const listContainer = document.getElementById("msg-list");
     listContainer.innerHTML = "読み込み中...";
 
-    fetch(`?action=getMessages&recordId=${activeRecId}`)
+    fetch(`${GAS_URL}?action=getMessages&recordId=${activeRecId}`, { redirect: "follow" })
       .then(res => res.json())
       .then(msgs => {
         listContainer.innerHTML = "";
-        if (msgs.length === 0) {
+        if (!Array.isArray(msgs) || msgs.length === 0) {
           listContainer.innerHTML = "<p style='color:#888;'>メッセージはまだありません。</p>";
           return;
         }
@@ -456,6 +481,9 @@
           `;
           listContainer.appendChild(div);
         });
+      })
+      .catch(err => {
+        listContainer.innerHTML = "<p style='color:red;'>読み込みエラー</p>";
       });
   }
 
@@ -472,15 +500,24 @@
     formData.append("role", role);
     formData.append("message", text);
 
-    fetch("", { method: "POST", body: formData })
+    fetch(GAS_URL, {
+      method: "POST",
+      mode: "cors",
+      redirect: "follow",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData
+    })
       .then(res => res.json())
       .then(res => {
         if (res.success) {
           document.getElementById("new-msg-input").value = "";
           loadMessages();
           loadRecords();
+        } else {
+          alert("送信エラー: " + (res.message || "メッセージの送信に失敗しました。"));
         }
-      });
+      })
+      .catch(err => alert("通信エラーが発生しました:\n" + err.message));
   }
 </script>
 
