@@ -305,6 +305,7 @@
       display: flex;
       gap: 8px;
       margin-bottom: 8px;
+      align-items: center;
     }
 
     .filter-row > * {
@@ -634,7 +635,13 @@
             <option value="me" selected data-i18n="optScopeMe">自分の表示</option>
             <option value="all" data-i18n="optScopeAll">全員を表示</option>
           </select>
-          <input type="date" id="filterDate" onchange="filterList()">
+        </div>
+
+        <!-- 期間検索フィールド -->
+        <div class="filter-row">
+          <input type="date" id="filterStartDate" onchange="filterList()" placeholder="開始日">
+          <span>〜</span>
+          <input type="date" id="filterEndDate" onchange="filterList()" placeholder="終了日">
         </div>
         
         <div class="filter-row" style="margin-bottom: 0;">
@@ -1200,7 +1207,7 @@
     }
 
     const payload = new URLSearchParams();
-    payload.append('action', 'addAttendance'); // アクション名を明示して追加
+    payload.append('action', 'addAttendance');
     payload.append('name', name);
     payload.append('department', department);
     payload.append('type', type);
@@ -1364,7 +1371,6 @@
     }
   }
 
-  // チャットメッセージ取得（修正版：GAS側の返却キー message, timestamp に対応）
   function loadChatMessages(recordId) {
     const historyEl = document.getElementById(`msgHistory_${recordId}`);
     const currentUserName = document.getElementById('name').value;
@@ -1379,11 +1385,9 @@
       
       let html = '';
       list.forEach(m => {
-        // 送信者が自分であるか、あるいは role === 'Applicant'（申請者）かで吹き出しを切り替え
         const isSelf = (m.sender === currentUserName) || (m.role === 'Applicant' && !isUserAdmin);
         const cls = isSelf ? 'applicant' : 'manager';
         
-        // m.message と m.timestamp を使用
         html += `
           <div class="msg-item ${cls}">
             <div class="msg-meta">${m.sender || ''} • ${m.timestamp || ''}</div>
@@ -1433,34 +1437,60 @@
     });
   }
 
+  // 絞り込みロジック（期間指定対応版）
   function filterList() {
     const scope = document.getElementById('filterUserScope').value;
-    const selectedDate = document.getElementById('filterDate').value;
+    const startDateVal = document.getElementById('filterStartDate').value;
+    const endDateVal = document.getElementById('filterEndDate').value;
     const selectedDept = document.getElementById('filterDept').value;
     const currentUserName = document.getElementById('name').value;
 
     const filtered = allRecords.filter(r => {
+      // ユーザー範囲の判定
       if (scope === 'me' && r.name !== currentUserName) {
         return false;
       }
 
-      let matchDate = true;
-      if (selectedDate && r.datetime) {
-        const formattedTargetDate = r.datetime.replace(/\//g, '-');
-        matchDate = formattedTargetDate.includes(selectedDate);
+      // 部署の判定
+      if (selectedDept && r.department !== selectedDept) {
+        return false;
       }
 
-      const matchDept = !selectedDept || r.department === selectedDept;
+      // 期間の判定
+      if (startDateVal || endDateVal) {
+        if (!r.datetime) return false;
+        
+        // datetime文字列から最初と最後の日付（yyyy-MM-dd / yyyy/MM/dd）を抽出
+        const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
+        if (!dateMatches) return false;
 
-      return matchDate && matchDept;
+        // レコードの最小日付・最大日付を取得
+        const recDates = dateMatches.map(d => new Date(d.replace(/-/g, '/')).getTime());
+        const recMinDate = Math.min(...recDates);
+        const recMaxDate = Math.max(...recDates);
+
+        if (startDateVal) {
+          const filterStart = new Date(startDateVal.replace(/-/g, '/')).getTime();
+          if (recMaxDate < filterStart) return false;
+        }
+
+        if (endDateVal) {
+          const filterEnd = new Date(endDateVal.replace(/-/g, '/')).getTime();
+          if (recMinDate > filterEnd) return false;
+        }
+      }
+
+      return true;
     });
 
     renderRecords(filtered.slice(0, 30));
   }
 
+  // フィルター初期化処理
   function clearFilter() {
     document.getElementById('filterUserScope').value = 'me';
-    document.getElementById('filterDate').value = '';
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
     document.getElementById('filterDept').value = '';
     filterList();
   }
