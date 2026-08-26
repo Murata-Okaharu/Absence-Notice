@@ -195,8 +195,8 @@
       <input type="text" id="empId" placeholder="例: 1001">
     </div>
     <div class="form-group">
-      <label>生年月日 (パスワード)</label>
-      <input type="password" id="dob" placeholder="例: 19900101">
+      <label>月日4桁 (パスワード)</label>
+      <input type="password" id="dob" maxlength="4" placeholder="例: 0501（5月1日）">
     </div>
     <button onclick="login()">ログイン</button>
   </div>
@@ -320,7 +320,7 @@
     const dob = document.getElementById("dob").value.trim();
 
     if (!empId || !dob) {
-      alert("IDとパスワードを入力してください。");
+      alert("社員IDと月日4桁を入力してください。");
       return;
     }
 
@@ -337,7 +337,7 @@
           
           loadRecords();
         } else {
-          alert("IDまたはパスワードが違います。");
+          alert("IDまたは月日4桁が違います。");
         }
       })
       .catch(err => alert("通信エラーが発生しました。"));
