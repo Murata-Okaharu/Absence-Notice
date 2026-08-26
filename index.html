@@ -1437,7 +1437,7 @@
     });
   }
 
-  // 絞り込みロジック（期間指定対応版）
+  // 絞り込みロジック（期間指定対応・多言語データ保持版）
   function filterList() {
     const scope = document.getElementById('filterUserScope').value;
     const startDateVal = document.getElementById('filterStartDate').value;
@@ -1460,22 +1460,22 @@
       if (startDateVal || endDateVal) {
         if (!r.datetime) return false;
         
-        // datetime文字列から最初と最後の日付（yyyy-MM-dd / yyyy/MM/dd）を抽出
+        // datetime文字列から日付（yyyy-MM-dd または yyyy/MM/dd）を抽出
         const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
         if (!dateMatches) return false;
 
-        // レコードの最小日付・最大日付を取得
+        // レコード内の最小日付・最大日付をタイムスタンプで取得
         const recDates = dateMatches.map(d => new Date(d.replace(/-/g, '/')).getTime());
         const recMinDate = Math.min(...recDates);
         const recMaxDate = Math.max(...recDates);
 
         if (startDateVal) {
-          const filterStart = new Date(startDateVal.replace(/-/g, '/')).getTime();
+          const filterStart = new Date(startDateVal.replace(/-/g, '/') + ' 00:00:00').getTime();
           if (recMaxDate < filterStart) return false;
         }
 
         if (endDateVal) {
-          const filterEnd = new Date(endDateVal.replace(/-/g, '/')).getTime();
+          const filterEnd = new Date(endDateVal.replace(/-/g, '/') + ' 23:59:59').getTime();
           if (recMinDate > filterEnd) return false;
         }
       }
