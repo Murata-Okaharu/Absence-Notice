@@ -63,6 +63,37 @@
       border-color: var(--primary-color);
     }
 
+    .user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      background: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .user-bar span {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #334155;
+    }
+
+    .logout-btn {
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+
     .auth-screen {
       text-align: center;
       padding: 10px 0;
@@ -464,6 +495,13 @@
 
   <!-- アプリ本体 -->
   <div id="mainApp" class="main-app">
+
+    <!-- ログインユーザー情報 & ログアウトボタン -->
+    <div class="user-bar">
+      <span id="loginUserInfo"></span>
+      <button onclick="logout()" class="logout-btn" data-i18n="btnLogout">ログアウト</button>
+    </div>
+
     <div class="tab-menu">
       <button class="tab-btn active" onclick="switchTab('form')" data-i18n="tabSend">勤怠送信</button>
       <button class="tab-btn" onclick="switchTab('list')" data-i18n="tabList">連絡一覧</button>
@@ -643,6 +681,8 @@
       lblEmpId: "社員ID",
       lblPass: "暗証番号（月日4桁 例: 0912）",
       btnLogin: "ログイン",
+      btnLogout: "ログアウト",
+      confirmLogout: "ログアウトしますか？",
       errAuthBlank: "IDと暗証番号（月日）を入力してください",
       errAuthCheck: "確認中...",
       errAuthFail: "IDまたは暗証番号（月日）が違います",
@@ -716,6 +756,8 @@
       lblEmpId: "Mã số nhân viên",
       lblPass: "Mật khẩu (4 số của tháng và ngày)",
       btnLogin: "Đăng nhập",
+      btnLogout: "Đăng xuất",
+      confirmLogout: "Bạn có muốn đăng xuất không?",
       errAuthBlank: "Vui lòng nhập Mã số nhân viên và Mật khẩu",
       errAuthCheck: "Đang kiểm tra...",
       errAuthFail: "Mã số nhân viên hoặc Mật khẩu không đúng",
@@ -789,6 +831,8 @@
       lblEmpId: "Employee ID",
       lblPass: "PIN (4 digits MMDD)",
       btnLogin: "Login",
+      btnLogout: "Logout",
+      confirmLogout: "Are you sure you want to log out?",
       errAuthBlank: "Please enter ID and PIN",
       errAuthCheck: "Checking...",
       errAuthFail: "Incorrect ID or PIN",
@@ -954,6 +998,9 @@
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
 
+        // ログイン中のユーザー名を画面上部に表示
+        document.getElementById('loginUserInfo').innerText = `👤 ${data.userName}`;
+
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         preloadRecords();
@@ -971,6 +1018,26 @@
       loginBtn.disabled = false;
       loginBtn.innerText = i18nData[currentLang].btnLogin;
     });
+  }
+
+  function logout() {
+    if (!confirm(i18nData[currentLang].confirmLogout)) return;
+
+    // 入力項目と変数の初期化
+    document.getElementById('empIdInput').value = '';
+    document.getElementById('passInput').value = '';
+    document.getElementById('loginBtn').disabled = false;
+    document.getElementById('loginBtn').innerText = i18nData[currentLang].btnLogin;
+
+    userDeptJa = '';
+    allRecords = [];
+    isUserAdmin = false;
+
+    resetForm();
+
+    // 画面の切り替え
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('authScreen').style.display = 'block';
   }
 
   function switchTab(tab) {
@@ -1246,13 +1313,12 @@
         let btnStyle = '';
 
         if (count > 0) {
-  btnText = i18nData[currentLang].btnMsgHasCount.replace('{count}', count);
-  // メッセージありの場合は赤背景・赤文字（枠線付き）に変更
-  btnStyle = 'background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;';
-} else {
-  btnText = i18nData[currentLang].btnMsgOpen;
-  btnStyle = 'background: #e2e8f0; color: #334155; border: 1px solid transparent;';
-}
+          btnText = i18nData[currentLang].btnMsgHasCount.replace('{count}', count);
+          btnStyle = 'background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;';
+        } else {
+          btnText = i18nData[currentLang].btnMsgOpen;
+          btnStyle = 'background: #e2e8f0; color: #334155; border: 1px solid transparent;';
+        }
 
         msgAreaHtml = `
           <button class="msg-toggle-btn" style="${btnStyle}" onclick="toggleMessageBox('${r.id}')">
