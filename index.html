@@ -998,7 +998,6 @@
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
 
-        // ログイン中のユーザー名を画面上部に表示
         document.getElementById('loginUserInfo').innerText = `👤 ${data.userName}`;
 
         document.getElementById('authScreen').style.display = 'none';
@@ -1023,7 +1022,6 @@
   function logout() {
     if (!confirm(i18nData[currentLang].confirmLogout)) return;
 
-    // 入力項目と変数の初期化
     document.getElementById('empIdInput').value = '';
     document.getElementById('passInput').value = '';
     document.getElementById('loginBtn').disabled = false;
@@ -1035,7 +1033,6 @@
 
     resetForm();
 
-    // 画面の切り替え
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('authScreen').style.display = 'block';
   }
@@ -1203,6 +1200,7 @@
     }
 
     const payload = new URLSearchParams();
+    payload.append('action', 'addAttendance'); // アクション名を明示して追加
     payload.append('name', name);
     payload.append('department', department);
     payload.append('type', type);
@@ -1299,13 +1297,11 @@
       const isOwner = (r.name === currentUserName);
       const canAccessPrivateInfo = isOwner || isUserAdmin;
 
-      // 理由の表示判定
       let reasonHtml = '';
       if (canAccessPrivateInfo && r.reason) {
         reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
       }
 
-      // メッセージ（チャット機能）の表示判定
       let msgAreaHtml = '';
       if (canAccessPrivateInfo) {
         const count = r.msgCount || 0;
@@ -1368,8 +1364,10 @@
     }
   }
 
+  // チャットメッセージ取得（修正版：GAS側の返却キー message, timestamp に対応）
   function loadChatMessages(recordId) {
     const historyEl = document.getElementById(`msgHistory_${recordId}`);
+    const currentUserName = document.getElementById('name').value;
     
     fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}`)
     .then(res => res.json())
@@ -1381,12 +1379,15 @@
       
       let html = '';
       list.forEach(m => {
-        const isApplicant = m.role === 'Applicant';
-        const cls = isApplicant ? 'applicant' : 'manager';
+        // 送信者が自分であるか、あるいは role === 'Applicant'（申請者）かで吹き出しを切り替え
+        const isSelf = (m.sender === currentUserName) || (m.role === 'Applicant' && !isUserAdmin);
+        const cls = isSelf ? 'applicant' : 'manager';
+        
+        // m.message と m.timestamp を使用
         html += `
           <div class="msg-item ${cls}">
-            <div class="msg-meta">${m.sender} • ${m.timestamp}</div>
-            <div>${m.message}</div>
+            <div class="msg-meta">${m.sender || ''} • ${m.timestamp || ''}</div>
+            <div>${m.message || ''}</div>
           </div>
         `;
       });
