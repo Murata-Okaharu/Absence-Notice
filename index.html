@@ -1246,12 +1246,13 @@
         let btnStyle = '';
 
         if (count > 0) {
-          btnText = i18nData[currentLang].btnMsgHasCount.replace('{count}', count);
-          btnStyle = 'background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;';
-        } else {
-          btnText = i18nData[currentLang].btnMsgOpen;
-          btnStyle = 'background: #e2e8f0; color: #334155; border: 1px solid transparent;';
-        }
+  btnText = i18nData[currentLang].btnMsgHasCount.replace('{count}', count);
+  // メッセージありの場合は赤背景・赤文字（枠線付き）に変更
+  btnStyle = 'background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;';
+} else {
+  btnText = i18nData[currentLang].btnMsgOpen;
+  btnStyle = 'background: #e2e8f0; color: #334155; border: 1px solid transparent;';
+}
 
         msgAreaHtml = `
           <button class="msg-toggle-btn" style="${btnStyle}" onclick="toggleMessageBox('${r.id}')">
