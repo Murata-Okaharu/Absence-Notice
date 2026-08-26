@@ -69,7 +69,6 @@
 
     button:hover { opacity: 0.9; }
 
-    /* 検索パネルのデザイン */
     .filter-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -105,7 +104,6 @@
       margin-top: 10px;
     }
 
-    /* テーブルデザイン */
     .table-wrapper {
       overflow-x: auto;
     }
@@ -138,7 +136,6 @@
       border-radius: 3px;
     }
 
-    /* メッセージモーダル */
     .modal {
       display: none;
       position: fixed;
@@ -187,7 +184,7 @@
 <body>
 
 <div class="container">
-  <!-- 1. ログインエリア -->
+  <!-- ログインエリア -->
   <div id="login-section" class="card">
     <h2>ログイン</h2>
     <div class="form-group">
@@ -201,7 +198,7 @@
     <button onclick="login()">ログイン</button>
   </div>
 
-  <!-- 2. メインエリア（認証後表示） -->
+  <!-- メインエリア -->
   <div id="main-section" class="hidden">
     
     <div class="card">
@@ -212,18 +209,14 @@
       <p>氏名: <strong id="user-name-disp"></strong> (<span id="user-dept-disp"></span>)</p>
     </div>
 
-    <!-- 検索条件エリア -->
+    <!-- 検索エリア -->
     <div class="card">
       <h3>リスト検索</h3>
       <div class="filter-grid">
-        
-        <!-- 指定日（1日）検索 -->
         <div class="filter-box">
           <div class="filter-box-title">【指定日（1日）で検索】</div>
           <input type="date" id="searchDate" onchange="clearDateRange()">
         </div>
-
-        <!-- 期間検索 -->
         <div class="filter-box">
           <div class="filter-box-title">【期間で検索】</div>
           <div class="date-range-inputs">
@@ -232,7 +225,6 @@
             <input type="date" id="endDate" onchange="clearSingleDate()">
           </div>
         </div>
-
       </div>
 
       <div class="btn-group">
@@ -241,7 +233,7 @@
       </div>
     </div>
 
-    <!-- 新規申請フォーム -->
+    <!-- 申請フォーム -->
     <div class="card">
       <h3>新規勤怠・連絡申請</h3>
       <form id="apply-form" onsubmit="submitApplication(event)">
@@ -295,7 +287,7 @@
   </div>
 </div>
 
-<!-- メッセージ用モーダル -->
+<!-- モーダル -->
 <div id="msg-modal" class="modal">
   <div class="modal-content">
     <h3 id="modal-title">メッセージ履歴</h3>
@@ -314,7 +306,6 @@
   let currentUser = null;
   let activeRecId = null;
 
-  // --- 1. ログイン処理 ---
   function login() {
     const empId = document.getElementById("empId").value.trim();
     const dob = document.getElementById("dob").value.trim();
@@ -327,7 +318,9 @@
     fetch(`?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`)
       .then(res => res.json())
       .then(data => {
-        if (data.success) {
+        if (data.error) {
+          alert("サーバーエラーが発生しました:\n" + data.error);
+        } else if (data.success) {
           currentUser = data;
           document.getElementById("user-name-disp").innerText = currentUser.userName;
           document.getElementById("user-dept-disp").innerText = currentUser.department;
@@ -337,17 +330,16 @@
           
           loadRecords();
         } else {
-          alert("IDまたは月日4桁が違います。");
+          alert(data.message || "IDまたは月日4桁が違います。");
         }
       })
-      .catch(err => alert("通信エラーが発生しました。"));
+      .catch(err => alert("通信エラーが発生しました。\n詳細: " + err.message));
   }
 
   function logout() {
     location.reload();
   }
 
-  // --- 2. 検索条件制御 ---
   function clearDateRange() {
     document.getElementById("startDate").value = "";
     document.getElementById("endDate").value = "";
@@ -364,7 +356,6 @@
     loadRecords();
   }
 
-  // --- 3. データ一覧の読み込み ---
   function loadRecords() {
     const tbody = document.getElementById("record-list");
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">読み込み中...</td></tr>';
@@ -408,7 +399,6 @@
       });
   }
 
-  // --- 4. 申請フォームの送信 ---
   function submitApplication(e) {
     e.preventDefault();
     
@@ -434,7 +424,6 @@
       });
   }
 
-  // --- 5. メッセージ機能 ---
   function openMsgModal(recId) {
     activeRecId = recId;
     document.getElementById("msg-modal").style.display = "flex";
@@ -489,7 +478,7 @@
         if (res.success) {
           document.getElementById("new-msg-input").value = "";
           loadMessages();
-          loadRecords(); // カウント更新用
+          loadRecords();
         }
       });
   }
