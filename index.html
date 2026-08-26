@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>勤怠・連絡システム</title>
+  <title>勤怠・連絡システム / Attendance System</title>
   <style>
     :root {
       --primary-color: #2c3e50;
@@ -23,6 +23,19 @@
     .container {
       max-width: 900px;
       margin: 0 auto;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .lang-selector {
+      width: auto;
+      padding: 5px 10px;
+      font-size: 0.9em;
     }
 
     .card {
@@ -184,18 +197,28 @@
 <body>
 
 <div class="container">
+  <!-- 言語選択ヘッダー -->
+  <div class="header-bar">
+    <div style="font-weight: bold; color: var(--primary-color);">勤怠・連絡システム</div>
+    <select id="lang-select" class="lang-selector" onchange="changeLanguage()">
+      <option value="ja" selected>日本語 (Japanese)</option>
+      <option value="vi">Tiếng Việt (Vietnamese)</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+
   <!-- ログインエリア -->
   <div id="login-section" class="card">
-    <h2>ログイン</h2>
+    <h2 data-i18n="login_title">ログイン</h2>
     <div class="form-group">
-      <label>社員ID</label>
+      <label data-i18n="emp_id_label">社員ID</label>
       <input type="text" id="empId" placeholder="例: 1001">
     </div>
     <div class="form-group">
-      <label>月日4桁 (パスワード)</label>
+      <label data-i18n="dob_label">月日4桁 (パスワード)</label>
       <input type="password" id="dob" maxlength="4" placeholder="例: 0501（5月1日）">
     </div>
-    <button onclick="login()">ログイン</button>
+    <button onclick="login()" data-i18n="login_btn">ログイン</button>
   </div>
 
   <!-- メインエリア -->
@@ -203,22 +226,32 @@
     
     <div class="card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3>ログイン情報</h3>
-        <button onclick="logout()" style="width:auto; padding:5px 10px; background:#dc3545;">ログアウト</button>
+        <h3 data-i18n="user_info_title">ログイン情報</h3>
+        <button onclick="logout()" style="width:auto; padding:5px 10px; background:#dc3545;" data-i18n="logout_btn">ログアウト</button>
       </div>
-      <p>氏名: <strong id="user-name-disp"></strong> (<span id="user-dept-disp"></span>)</p>
+      <p><span data-i18n="name_label">氏名</span>: <strong id="user-name-disp"></strong> (<span id="user-dept-disp"></span>)</p>
     </div>
 
-    <!-- 検索エリア -->
+    <!-- 検索エリア（自分／全員の表示切り替え付き） -->
     <div class="card">
-      <h3>リスト検索</h3>
+      <h3 data-i18n="search_title">リスト検索</h3>
+      
+      <!-- 表示範囲の選択（権限者または一般ユーザー用） -->
+      <div class="form-group" id="view-scope-group">
+        <label data-i18n="view_scope_label">表示範囲</label>
+        <select id="viewScope" onchange="loadRecords()">
+          <option value="self" data-i18n="scope_self">自分の申請のみ表示</option>
+          <option value="all" id="opt-scope-all" data-i18n="scope_all">全員の申請を表示</option>
+        </select>
+      </div>
+
       <div class="filter-grid">
         <div class="filter-box">
-          <div class="filter-box-title">【指定日（1日）で検索】</div>
+          <div class="filter-box-title" data-i18n="search_single_date">【指定日（1日）で検索】</div>
           <input type="date" id="searchDate" onchange="clearDateRange()">
         </div>
         <div class="filter-box">
-          <div class="filter-box-title">【期間で検索】</div>
+          <div class="filter-box-title" data-i18n="search_range_date">【期間で検索】</div>
           <div class="date-range-inputs">
             <input type="date" id="startDate" onchange="clearSingleDate()">
             <span>〜</span>
@@ -228,57 +261,72 @@
       </div>
 
       <div class="btn-group">
-        <button onclick="loadRecords()">検索実行</button>
-        <button onclick="resetSearch()" style="background:#6c757d;">条件リセット</button>
+        <button onclick="loadRecords()" data-i18n="search_btn">検索実行</button>
+        <button onclick="resetSearch()" style="background:#6c757d;" data-i18n="reset_btn">条件リセット</button>
       </div>
     </div>
 
     <!-- 申請フォーム -->
     <div class="card">
-      <h3>新規勤怠・連絡申請</h3>
+      <h3 data-i18n="apply_title">新規勤怠・連絡申請</h3>
       <form id="apply-form" onsubmit="submitApplication(event)">
         <div class="form-group">
-          <label>区分</label>
-          <select id="app-type" required>
-            <option value="">選択してください</option>
-            <option value="有給休暇">有給休暇</option>
-            <option value="遅刻">遅刻</option>
-            <option value="早退">早退</option>
-            <option value="欠勤">欠勤</option>
-            <option value="その他">その他</option>
+          <label data-i18n="type_label">区分</label>
+          <select id="app-type" required onchange="updateReasonOptions()">
+            <option value="" data-i18n="select_default">選択してください</option>
+            <option value="有給休暇" data-i18n="type_paid">有給休暇</option>
+            <option value="遅刻" data-i18n="type_late">遅刻</option>
+            <option value="早退" data-i18n="type_early">早退</option>
+            <option value="欠勤" data-i18n="type_absent">欠勤</option>
+            <option value="その他" data-i18n="type_other">その他</option>
           </select>
         </div>
+        
+        <!-- 理由の選択肢エリア -->
         <div class="form-group">
-          <label>対象日時</label>
+          <label data-i18n="reason_select_label">理由（選択肢）</label>
+          <select id="app-reason-select" onchange="fillReasonText()">
+            <option value="" data-i18n="select_default">選択してください</option>
+            <option value="私用のため" data-i18n="reason_personal">私用のため</option>
+            <option value="体調不良のため" data-i18n="reason_sick">体調不良のため</option>
+            <option value="通院のため" data-i18n="reason_hospital">通院のため</option>
+            <option value="家庭都合のため" data-i18n="reason_family">家庭都合のため</option>
+            <option value="交通機関遅延のため" data-i18n="reason_traffic">交通機関遅延のため</option>
+            <option value="その他（自由入力）" data-i18n="reason_custom">その他（自由入力）</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="datetime_label">対象日時</label>
           <input type="datetime-local" id="app-datetime" required>
         </div>
         <div class="form-group">
-          <label>理由</label>
+          <label data-i18n="reason_detail_label">理由詳細（補足・自由入力）</label>
           <textarea id="app-reason" rows="2" required></textarea>
         </div>
-        <button type="submit">送信する</button>
+        <button type="submit" data-i18n="submit_btn">送信する</button>
       </form>
     </div>
 
     <!-- 一覧テーブル -->
     <div class="card">
-      <h3>申請・連絡一覧</h3>
+      <h3 data-i18n="list_title">申請・連絡一覧</h3>
       <div class="table-wrapper">
         <table>
           <thead>
             <tr>
-              <th>対象日時</th>
-              <th>氏名</th>
-              <th>部署</th>
-              <th>区分</th>
-              <th>理由</th>
-              <th>課長承認</th>
-              <th>工場長承認</th>
-              <th>連絡</th>
+              <th data-i18n="th_datetime">対象日時</th>
+              <th data-i18n="th_name">氏名</th>
+              <th data-i18n="th_dept">部署</th>
+              <th data-i18n="th_type">区分</th>
+              <th data-i18n="th_reason">理由</th>
+              <th data-i18n="th_mgr_status">課長承認</th>
+              <th data-i18n="th_factory_status">工場長承認</th>
+              <th data-i18n="th_action">連絡</th>
             </tr>
           </thead>
           <tbody id="record-list">
-            <tr><td colspan="8" style="text-align:center;">データを読み込み中...</td></tr>
+            <tr><td colspan="8" style="text-align:center;" data-i18n="loading">データを読み込み中...</td></tr>
           </tbody>
         </table>
       </div>
@@ -287,29 +335,199 @@
   </div>
 </div>
 
-<!-- モーダル -->
+<!-- モーダル（メッセージ履歴・送信） -->
 <div id="msg-modal" class="modal">
   <div class="modal-content">
-    <h3 id="modal-title">メッセージ履歴</h3>
+    <h3 id="modal-title" data-i18n="modal_msg_title">メッセージ履歴</h3>
     <div class="msg-list" id="msg-list"></div>
     <div class="form-group">
-      <textarea id="new-msg-input" rows="2" placeholder="メッセージを入力..."></textarea>
+      <textarea id="new-msg-input" rows="2" placeholder="..." data-i18n-ph="msg_ph"></textarea>
     </div>
     <div style="display:flex; gap:10px;">
-      <button onclick="sendMsg()">送信</button>
-      <button onclick="closeMsgModal()" style="background:#6c757d;">閉じる</button>
+      <button onclick="sendMsg()" data-i18n="send_btn">送信</button>
+      <button onclick="closeMsgModal()" style="background:#6c757d;" data-i18n="close_btn">閉じる</button>
     </div>
   </div>
 </div>
 
 <script>
   // ----------------------------------------------------
-  // ★重要: 以下にGASの最新ウェブアプリURL（末尾が /exec のもの）を貼り付けてください
+  // ★重要: 最新のGAS WebアプリURL（末尾が /exec のもの）を指定します
   // ----------------------------------------------------
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
+  const GAS_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
+  // 多言語定義辞書 (日本語, ベトナム語, 英語)
+  const dict = {
+    ja: {
+      login_title: "ログイン",
+      emp_id_label: "社員ID",
+      dob_label: "月日4桁 (パスワード)",
+      login_btn: "ログイン",
+      user_info_title: "ログイン情報",
+      logout_btn: "ログアウト",
+      name_label: "氏名",
+      search_title: "リスト検索",
+      view_scope_label: "表示範囲",
+      scope_self: "自分の申請のみ表示",
+      scope_all: "全員の申請を表示",
+      search_single_date: "【指定日（1日）で検索】",
+      search_range_date: "【期間で検索】",
+      search_btn: "検索実行",
+      reset_btn: "条件リセット",
+      apply_title: "新規勤怠・連絡申請",
+      type_label: "区分",
+      select_default: "選択してください",
+      type_paid: "有給休暇",
+      type_late: "遅刻",
+      type_early: "早退",
+      type_absent: "欠勤",
+      type_other: "その他",
+      reason_select_label: "理由（選択肢）",
+      reason_personal: "私用のため",
+      reason_sick: "体調不良のため",
+      reason_hospital: "通院のため",
+      reason_family: "家庭都合のため",
+      reason_traffic: "交通機関遅延のため",
+      reason_custom: "その他（自由入力）",
+      datetime_label: "対象日時",
+      reason_detail_label: "理由詳細（補足・自由入力）",
+      submit_btn: "送信する",
+      list_title: "申請・連絡一覧",
+      th_datetime: "対象日時",
+      th_name: "氏名",
+      th_dept: "部署",
+      th_type: "区分",
+      th_reason: "理由",
+      th_mgr_status: "課長承認",
+      th_factory_status: "工場長承認",
+      th_action: "連絡",
+      loading: "データを読み込み中...",
+      no_data: "該当するデータがありません。",
+      modal_msg_title: "メッセージ履歴",
+      msg_ph: "メッセージを入力...",
+      send_btn: "送信",
+      close_btn: "閉じる"
+    },
+    vi: {
+      login_title: "Đăng nhập",
+      emp_id_label: "Mã số nhân viên",
+      dob_label: "Mật khẩu (4 chữ số ngày tháng)",
+      login_btn: "Đăng nhập",
+      user_info_title: "Thông tin người dùng",
+      logout_btn: "Đăng xuất",
+      name_label: "Họ và tên",
+      search_title: "Tìm kiếm danh sách",
+      view_scope_label: "Phạm vi hiển thị",
+      scope_self: "Chỉ hiển thị đơn của tôi",
+      scope_all: "Hiển thị đơn của tất cả",
+      search_single_date: "【Tìm theo 1 ngày】",
+      search_range_date: "【Tìm theo khoảng thời gian】",
+      search_btn: "Tìm kiếm",
+      reset_btn: "Đặt lại",
+      apply_title: "Đăng ký điểm danh / liên hệ mới",
+      type_label: "Phân loại",
+      select_default: "Vui lòng chọn",
+      type_paid: "Nghỉ phép có lương",
+      type_late: "Đi muộn",
+      type_early: "Về sớm",
+      type_absent: "Nghỉ làm",
+      type_other: "Khác",
+      reason_select_label: "Lý do (Tùy chọn)",
+      reason_personal: "Vì việc cá nhân",
+      reason_sick: "Vì lý do sức khỏe",
+      reason_hospital: "Đi khám bệnh",
+      reason_family: "Vì việc gia đình",
+      reason_traffic: "Trễ phương tiện giao thông",
+      reason_custom: "Lý do khác (Tự nhập)",
+      datetime_label: "Thời gian áp dụng",
+      reason_detail_label: "Chi tiết lý do (Nhập tự do)",
+      submit_btn: "Gửi đơn",
+      list_title: "Danh sách đơn / liên hệ",
+      th_datetime: "Thời gian",
+      th_name: "Họ tên",
+      th_dept: "Bộ phận",
+      th_type: "Phân loại",
+      th_reason: "Lý do",
+      th_mgr_status: "Quản lý duyệt",
+      th_factory_status: "Giám đốc duyệt",
+      th_action: "Liên hệ",
+      loading: "Đang tải dữ liệu...",
+      no_data: "Không có dữ liệu phù hợp.",
+      modal_msg_title: "Lịch sử tin nhắn",
+      msg_ph: "Nhập tin nhắn...",
+      send_btn: "Gửi",
+      close_btn: "Đóng"
+    },
+    en: {
+      login_title: "Login",
+      emp_id_label: "Employee ID",
+      dob_label: "Password (MMDD 4-digits)",
+      login_btn: "Login",
+      user_info_title: "User Profile",
+      logout_btn: "Logout",
+      name_label: "Name",
+      search_title: "Search Records",
+      view_scope_label: "Display Scope",
+      scope_self: "My Applications Only",
+      scope_all: "All Applications",
+      search_single_date: "【Filter by Single Date】",
+      search_range_date: "【Filter by Date Range】",
+      search_btn: "Search",
+      reset_btn: "Reset",
+      apply_title: "New Attendance / Contact Form",
+      type_label: "Category",
+      select_default: "Please select",
+      type_paid: "Paid Leave",
+      type_late: "Late Arrival",
+      type_early: "Early Leave",
+      type_absent: "Absence",
+      type_other: "Other",
+      reason_select_label: "Reason Options",
+      reason_personal: "Personal Reasons",
+      reason_sick: "Feeling Unwell",
+      reason_hospital: "Hospital / Medical Visit",
+      reason_family: "Family Matters",
+      reason_traffic: "Transport Delay",
+      reason_custom: "Other (Free Text)",
+      datetime_label: "Target Date & Time",
+      reason_detail_label: "Reason Details",
+      submit_btn: "Submit",
+      list_title: "Applications & Messages List",
+      th_datetime: "Date & Time",
+      th_name: "Name",
+      th_dept: "Department",
+      th_type: "Type",
+      th_reason: "Reason",
+      th_mgr_status: "Manager Approval",
+      th_factory_status: "Factory Manager Approval",
+      th_action: "Messages",
+      loading: "Loading data...",
+      no_data: "No records found.",
+      modal_msg_title: "Message History",
+      msg_ph: "Enter message...",
+      send_btn: "Send",
+      close_btn: "Close"
+    }
+  };
+
+  let currentLang = "ja";
   let currentUser = null;
   let activeRecId = null;
+
+  function changeLanguage() {
+    currentLang = document.getElementById("lang-select").value;
+    const l = dict[currentLang];
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (l[key]) el.innerText = l[key];
+    });
+
+    document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+      const key = el.getAttribute("data-i18n-ph");
+      if (l[key]) el.placeholder = l[key];
+    });
+  }
 
   function login() {
     const empId = document.getElementById("empId").value.trim();
@@ -321,7 +539,7 @@
     }
 
     if (GAS_URL.includes("YOUR_SCRIPT_ID")) {
-      alert("JavaScript内の GAS_URL 変数にWebアプリのURLを設定してください。");
+      alert("JavaScript内の GAS_URL 変数に正しいWebアプリのURLを設定してください。");
       return;
     }
 
@@ -331,12 +549,18 @@
       .then(res => res.json())
       .then(data => {
         if (data.error) {
-          alert("サーバーエラーが発生しました:\n" + data.error);
+          alert("エラー:\n" + data.error);
         } else if (data.success) {
-          currentUser = data;
+          currentUser = data; // 例: { userName, department, isAdmin, isFactoryManager }
           document.getElementById("user-name-disp").innerText = currentUser.userName;
           document.getElementById("user-dept-disp").innerText = currentUser.department;
           
+          // 全員表示の選択権限（管理者・工場長・役職者の制御）
+          const optAll = document.getElementById("opt-scope-all");
+          if (!currentUser.isAdmin && !currentUser.isFactoryManager) {
+            // 一般権限の場合でも閲覧可能にするか制御（必要に応じて非表示にする場合は optAll.remove() など）
+          }
+
           document.getElementById("login-section").classList.add("hidden");
           document.getElementById("main-section").classList.remove("hidden");
           
@@ -352,6 +576,18 @@
     location.reload();
   }
 
+  function fillReasonText() {
+    const select = document.getElementById("app-reason-select");
+    const textarea = document.getElementById("app-reason");
+    if (select.value && select.value !== "その他（自由入力）") {
+      textarea.value = select.options[select.selectedIndex].text;
+    }
+  }
+
+  function updateReasonOptions() {
+    // 区分に応じて理由選択肢を変更・補足するロジック
+  }
+
   function clearDateRange() {
     document.getElementById("startDate").value = "";
     document.getElementById("endDate").value = "";
@@ -365,18 +601,21 @@
     document.getElementById("searchDate").value = "";
     document.getElementById("startDate").value = "";
     document.getElementById("endDate").value = "";
+    document.getElementById("viewScope").value = "self";
     loadRecords();
   }
 
   function loadRecords() {
     const tbody = document.getElementById("record-list");
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">読み込み中...</td></tr>';
+    const l = dict[currentLang];
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">${l.loading}</td></tr>`;
 
     const searchDate = document.getElementById("searchDate").value;
     const startDate  = document.getElementById("startDate").value;
     const endDate    = document.getElementById("endDate").value;
+    const scope      = document.getElementById("viewScope").value;
 
-    let url = `${GAS_URL}?action=getRecords&empName=${encodeURIComponent(currentUser.userName)}&isAdmin=${currentUser.isAdmin}`;
+    let url = `${GAS_URL}?action=getRecords&empName=${encodeURIComponent(currentUser.userName)}&isAdmin=${currentUser.isAdmin}&isFactoryManager=${!!currentUser.isFactoryManager}&scope=${scope}`;
     if (searchDate) url += `&searchDate=${searchDate}`;
     if (startDate)  url += `&startDate=${startDate}`;
     if (endDate)    url += `&endDate=${endDate}`;
@@ -386,7 +625,7 @@
       .then(records => {
         tbody.innerHTML = "";
         if (!Array.isArray(records) || records.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">該当するデータがありません。</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;">${l.no_data}</td></tr>`;
           return;
         }
 
@@ -410,7 +649,7 @@
         });
       })
       .catch(err => {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">データの読み込みに失敗しました。</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:red;">データ取得エラー</td></tr>';
       });
   }
 
@@ -439,14 +678,14 @@
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          alert("申請を送信しました。");
+          alert("送信完了 / Submitted successfully / Đã gửi thành công");
           document.getElementById("apply-form").reset();
           loadRecords();
         } else {
-          alert("送信エラー: " + (res.message || "処理に失敗しました。"));
+          alert("送信エラー: " + (res.message || "Failed"));
         }
       })
-      .catch(err => alert("通信エラーが発生しました:\n" + err.message));
+      .catch(err => alert("通信エラー: " + err.message));
   }
 
   function openMsgModal(recId) {
@@ -462,14 +701,15 @@
 
   function loadMessages() {
     const listContainer = document.getElementById("msg-list");
-    listContainer.innerHTML = "読み込み中...";
+    const l = dict[currentLang];
+    listContainer.innerHTML = l.loading;
 
-    fetch(`${GAS_URL}?action=getMessages&recordId=${activeRecId}`, { redirect: "follow" })
+    fetch(`${GAS_URL}?action=getMessages&recordId=${activeRecId}&userName=${encodeURIComponent(currentUser.userName)}&isFactoryManager=${!!currentUser.isFactoryManager}`, { redirect: "follow" })
       .then(res => res.json())
       .then(msgs => {
         listContainer.innerHTML = "";
         if (!Array.isArray(msgs) || msgs.length === 0) {
-          listContainer.innerHTML = "<p style='color:#888;'>メッセージはまだありません。</p>";
+          listContainer.innerHTML = `<p style='color:#888;'>${l.no_data}</p>`;
           return;
         }
         msgs.forEach(m => {
@@ -483,7 +723,7 @@
         });
       })
       .catch(err => {
-        listContainer.innerHTML = "<p style='color:red;'>読み込みエラー</p>";
+        listContainer.innerHTML = "<p style='color:red;'>エラー</p>";
       });
   }
 
@@ -491,7 +731,9 @@
     const text = document.getElementById("new-msg-input").value.trim();
     if (!text) return;
 
-    const role = currentUser.isAdmin ? "Manager" : "Applicant";
+    let role = "Applicant";
+    if (currentUser.isFactoryManager) role = "FactoryManager";
+    else if (currentUser.isAdmin) role = "Manager";
 
     const formData = new URLSearchParams();
     formData.append("action", "addMessage");
@@ -514,10 +756,10 @@
           loadMessages();
           loadRecords();
         } else {
-          alert("送信エラー: " + (res.message || "メッセージの送信に失敗しました。"));
+          alert("送信エラー");
         }
       })
-      .catch(err => alert("通信エラーが発生しました:\n" + err.message));
+      .catch(err => alert("通信エラー: " + err.message));
   }
 </script>
 
