@@ -3,1498 +3,752 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>勤怠・連絡システム</title>
+  <title>勤怠・連絡管理システム</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --primary-color: #2563eb;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-color: #1e293b;
-      --border-color: #cbd5e1;
-      --accent-color: #16a34a;
+    .modal {
+      transition: opacity 0.25s ease;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      padding: 12px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 520px;
-      background: var(--card-bg);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      padding: 20px;
-      position: relative;
-    }
-
-    .lang-switcher {
-      display: flex;
-      justify-content: flex-end;
-      gap: 4px;
-      margin-bottom: 12px;
-    }
-
-    .lang-btn {
-      padding: 4px 10px;
-      font-size: 0.8rem;
-      font-weight: bold;
-      border: 1px solid var(--border-color);
-      background: #f1f5f9;
-      color: #64748b;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .lang-btn.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-    }
-
-    .user-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      background: #f1f5f9;
-      padding: 8px 12px;
-      border-radius: 8px;
-    }
-
-    .user-bar span {
-      font-size: 0.85rem;
-      font-weight: bold;
-      color: #334155;
-    }
-
-    .logout-btn {
-      padding: 4px 10px;
-      font-size: 0.8rem;
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .logout-btn:hover {
-      background: #dc2626;
-    }
-
-    .auth-screen {
-      text-align: center;
-      padding: 10px 0;
-    }
-
-    .auth-screen h2 {
-      margin-bottom: 4px;
-      color: var(--primary-color);
-      font-size: 1.2rem;
-    }
-
-    .auth-screen p {
-      font-size: 0.85rem;
-      color: #64748b;
-      margin-bottom: 16px;
-    }
-
-    .auth-group {
-      text-align: left;
-      margin-bottom: 12px;
-    }
-
-    .auth-group label {
-      font-size: 0.85rem;
-      font-weight: bold;
-      margin-bottom: 4px;
-      display: block;
-    }
-
-    .auth-input {
-      width: 100%;
-      padding: 12px;
-      font-size: 1.1rem;
-      text-align: center;
-      letter-spacing: 1px;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      outline: none;
-    }
-
-    .auth-btn {
-      width: 100%;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: bold;
-      color: white;
-      background-color: var(--primary-color);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-
-    .main-app {
-      display: none;
-    }
-
-    .tab-menu {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      border-bottom: 2px solid var(--border-color);
-      padding-bottom: 8px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 12px 6px;
-      background: #f1f5f9;
-      border: none;
-      border-radius: 8px 8px 0 0;
-      font-weight: bold;
-      font-size: 0.9rem;
-      cursor: pointer;
-      color: #64748b;
-    }
-
-    .tab-btn.active {
-      background: var(--primary-color);
-      color: white;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .header h1 {
-      font-size: 1.3rem;
-      color: var(--primary-color);
-    }
-
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 6px;
-      font-size: 0.9rem;
-    }
-
-    input[type="text"], input[type="password"], input[type="date"], input[type="datetime-local"], select, textarea {
-      width: 100%;
-      padding: 12px;
-      font-size: 0.95rem;
-      border: 2px solid var(--border-color);
-      border-radius: 8px;
-      outline: none;
-      background-color: #fff;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary-color);
-    }
-
-    .range-inputs {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .range-inputs input {
-      flex: 1;
-    }
-
-    .paid-leave-info {
-      display: none;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1e40af;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: bold;
-      margin-top: 8px;
-    }
-
-    .type-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-
-    .type-card {
-      position: relative;
-    }
-
-    .type-card input[type="radio"] {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .type-card label {
-      display: block;
-      padding: 10px;
-      background: #f1f5f9;
-      border: 2px solid transparent;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      text-align: center;
-      margin-bottom: 0;
-    }
-
-    .type-card input[type="radio"]:checked + label {
-      background: #eff6ff;
-      border-color: var(--primary-color);
-      color: var(--primary-color);
-      font-weight: bold;
-    }
-
-    .reason-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
-    }
-
-    button.submit-btn {
-      width: 100%;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: bold;
-      color: white;
-      background-color: var(--primary-color);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .success-msg {
-      display: none;
-      text-align: center;
-      padding: 20px 0;
-    }
-
-    .filter-box {
-      background: #f1f5f9;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-    }
-
-    .filter-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 8px;
-      align-items: center;
-    }
-
-    .filter-row > * {
-      flex: 1;
-    }
-
-    .list-card {
-      background: #fff;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-
-    .list-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 6px;
-      padding-bottom: 6px;
-      border-bottom: 1px dashed var(--border-color);
-    }
-
-    .list-name {
-      font-weight: bold;
-      font-size: 1rem;
-    }
-
-    .list-dept {
-      font-size: 0.75rem;
-      background: #e2e8f0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-left: 4px;
-    }
-
-    .badge-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      align-items: flex-end;
-    }
-
-    .badge {
-      font-size: 0.7rem;
-      font-weight: bold;
-      padding: 2px 6px;
-      border-radius: 8px;
-      white-space: nowrap;
-    }
-
-    .badge-approved {
-      background-color: #dcfce7;
-      color: #15803d;
-    }
-
-    .badge-pending {
-      background-color: #fef3c7;
-      color: #b45309;
-    }
-
-    .list-detail {
-      font-size: 0.85rem;
-      color: #334155;
-      line-height: 1.4;
-    }
-
-    .list-reason {
-      margin-top: 4px;
-      font-size: 0.8rem;
-      color: #64748b;
-      background: #f8fafc;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-
-    .msg-toggle-btn {
-      margin-top: 8px;
-      width: 100%;
-      padding: 6px 10px;
-      font-size: 0.8rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background-color 0.2s, border-color 0.2s;
-    }
-
-    .msg-container {
-      display: none;
-      margin-top: 8px;
-      border-top: 1px solid var(--border-color);
-      padding-top: 8px;
-      background: #f8fafc;
-      border-radius: 6px;
-      padding: 8px;
-    }
-
-    .msg-history {
-      max-height: 150px;
-      overflow-y: auto;
-      margin-bottom: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .msg-item {
-      font-size: 0.8rem;
-      padding: 6px 10px;
-      border-radius: 8px;
-      max-width: 85%;
-      word-wrap: break-word;
-    }
-
-    .msg-item.applicant {
-      background: #dbeafe;
-      align-self: flex-end;
-      color: #1e40af;
-    }
-
-    .msg-item.manager {
-      background: #e2e8f0;
-      align-self: flex-start;
-      color: #0f172a;
-    }
-
-    .msg-meta {
-      font-size: 0.65rem;
-      color: #64748b;
-      margin-bottom: 2px;
-    }
-
-    .msg-input-box {
-      display: flex;
-      gap: 6px;
-    }
-
-    .msg-input-box input {
-      flex: 1;
-      padding: 6px 8px;
-      font-size: 0.8rem;
-      border-radius: 6px;
-    }
-
-    .msg-input-box button {
-      padding: 6px 12px;
-      font-size: 0.8rem;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+    body.modal-active {
+      overflow-x: hidden;
+      overflow-y: hidden !important;
     }
   </style>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
 
-<div class="container">
-
-  <!-- 言語切替ボタン -->
-  <div class="lang-switcher">
-    <button class="lang-btn active" onclick="setLanguage('ja')">JP-日本語</button>
-    <button class="lang-btn" onclick="setLanguage('vi')">VN-Tiếng Việt</button>
-    <button class="lang-btn" onclick="setLanguage('en')">EN-English</button>
-  </div>
-
-  <!-- 本人確認画面 -->
-  <div id="authScreen" class="auth-screen">
-    <h2 data-i18n="authTitle">本人確認</h2>
-    <p data-i18n="authSub">社員IDと暗証番号を入力してください</p>
-    
-    <div class="auth-group">
-      <label data-i18n="lblEmpId">社員ID</label>
-      <input type="text" id="empIdInput" class="auth-input" placeholder="0015">
-    </div>
-
-    <div class="auth-group">
-      <label data-i18n="lblPass">暗証番号（月日4桁）</label>
-      <input type="password" id="passInput" class="auth-input" maxlength="4" placeholder="••••">
-    </div>
-
-    <button onclick="checkAuth()" id="loginBtn" class="auth-btn" data-i18n="btnLogin">ログイン</button>
-    <p id="passError" style="color: red; margin-top: 10px; display: none;"></p>
-  </div>
-
-  <!-- アプリ本体 -->
-  <div id="mainApp" class="main-app">
-
-    <!-- ログインユーザー情報 & ログアウトボタン -->
-    <div class="user-bar">
-      <span id="loginUserInfo"></span>
-      <button onclick="logout()" class="logout-btn" data-i18n="btnLogout">ログアウト</button>
-    </div>
-
-    <div class="tab-menu">
-      <button class="tab-btn active" onclick="switchTab('form')" data-i18n="tabSend">勤怠送信</button>
-      <button class="tab-btn" onclick="switchTab('list')" data-i18n="tabList">連絡一覧</button>
-    </div>
-
-    <!-- フォーム画面 -->
-    <div id="formTab">
-      <div class="header">
-        <h1 data-i18n="formTitle">勤怠・連絡</h1>
+  <!-- ==================== ログイン画面 ==================== -->
+  <div id="loginScreen" class="flex items-center justify-center min-h-screen px-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-full max-w-md border border-slate-200">
+      <div class="text-center mb-8">
+        <div class="inline-block p-4 bg-blue-50 rounded-full text-blue-600 mb-3">
+          <i class="fa-solid fa-user-lock fa-2x"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-800" id="loginTitle">本人確認ログイン</h1>
+        <p class="text-xs text-slate-500 mt-1" id="loginSub">従業員番号と生年月日を入力してください</p>
       </div>
 
-      <form id="attendanceForm">
-        <div class="form-group">
-          <label data-i18n="lbl1Name">1. お名前</label>
-          <input type="text" id="name" name="name" readonly style="background-color: #f1f5f9;" required>
+      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1" id="lblEmpId">従業員番号</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="fa-solid fa-id-card"></i>
+            </span>
+            <input type="text" id="loginEmpId" required placeholder="例: 1001"
+              class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label data-i18n="lbl2Dept">2. あなたの工程</label>
-          <input type="text" id="department" name="department" readonly style="background-color: #f1f5f9;" required>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1" id="lblDob">暗証番号 / 生年月日</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="loginDob" required placeholder="例: 19900101"
+              class="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label data-i18n="lbl3Type">3. 連絡の種類</label>
-          <div class="type-grid">
-            <div class="type-card">
-              <input type="radio" id="type1" name="type" value="有給" onchange="toggleDateInput('date')" required>
-              <label for="type1" data-i18n="typePaid">有給</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="type2" name="type" value="半休" onchange="toggleDateInput('half')">
-              <label for="type2" data-i18n="typeHalf">半休</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="type3" name="type" value="欠勤" onchange="toggleDateInput('date')">
-              <label for="type3" data-i18n="typeAbsent">欠勤</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="type4" name="type" value="遅刻" onchange="toggleDateInput('datetime')">
-              <label for="type4" data-i18n="typeLate">遅刻</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="type5" name="type" value="早退" onchange="toggleDateInput('datetime')">
-              <label for="type5" data-i18n="typeEarly">早退</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="type6" name="type" value="中抜け" onchange="toggleDateInput('datetime')">
-              <label for="type6" data-i18n="typeOut">中抜け</label>
+        <div id="loginError" class="text-red-500 text-sm hidden bg-red-50 p-3 rounded-lg border border-red-200"></div>
+
+        <button type="submit" id="btnLoginSubmit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition duration-200">
+          ログイン
+        </button>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ==================== メイン画面 ==================== -->
+  <div id="mainApp" class="hidden min-h-screen flex flex-col">
+    <!-- ヘッダー -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <i class="fa-solid fa-clipboard-user text-2xl text-blue-600"></i>
+          <div>
+            <h1 class="text-lg font-bold text-slate-800 leading-tight" id="appTitle">勤怠・連絡管理システム</h1>
+            <div class="flex items-center text-xs text-slate-500 space-x-2">
+              <span id="userInfo" class="font-medium text-slate-700"></span>
+              <span id="adminBadge" class="hidden bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">管理者</span>
             </div>
           </div>
         </div>
 
-        <div class="form-group" id="dateInputArea">
-          <label data-i18n="lbl4Date">4. 日付・時間</label>
+        <div class="flex items-center space-x-3">
+          <!-- 言語切替 -->
+          <select id="langSelect" onchange="changeLanguage(this.value)" class="text-xs border border-slate-300 rounded-md p-1.5 bg-slate-50 text-slate-700 font-medium">
+            <option value="ja">日本語</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="en">English</option>
+          </select>
 
-          <div id="singleDateBlock">
-            <div class="range-inputs">
-              <input type="date" id="startDate" name="startDate" onchange="checkSameDay()">
-              <span id="rangeSeparator">〜</span>
-              <input type="date" id="endDate" name="endDate" placeholder="終了日（任意）">
+          <!-- ログアウト -->
+          <button onclick="logout()" class="text-xs text-slate-500 hover:text-red-600 p-2 rounded-lg hover:bg-slate-100 transition" title="ログアウト">
+            <i class="fa-solid fa-right-from-bracket text-base"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-grow max-w-6xl w-full mx-auto p-4 space-y-6">
+      
+      <!-- 有給残日数サマリーカード -->
+      <div id="paidLeaveSummary" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 text-white shadow-md flex justify-between items-center">
+        <div>
+          <p class="text-xs text-blue-100 font-medium" id="lblPaidLeaveTitle">本年度の有給休暇取得状況</p>
+          <div class="flex items-baseline space-x-2 mt-1">
+            <span class="text-3xl font-extrabold" id="paidLeaveDays">0</span>
+            <span class="text-sm text-blue-100" id="lblDaysUnit">日 取得済み</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-xs bg-white/20 px-3 py-1 rounded-full text-white backdrop-blur-sm" id="lblPaidLeaveNotice">
+            ※当システム経由の全取得合計
+          </span>
+        </div>
+      </div>
+
+      <!-- タブ切替 -->
+      <div class="flex border-b border-slate-200">
+        <button id="tabBtnNew" onclick="switchTab('new')" class="py-3 px-6 text-sm font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span id="tabTitleNew">新規連絡・申請</span>
+        </button>
+        <button id="tabBtnList" onclick="switchTab('list')" class="py-3 px-6 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 focus:outline-none flex items-center space-x-2">
+          <i class="fa-solid fa-list-check"></i>
+          <span id="tabTitleList">連絡・申請履歴一覧</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: 新規連絡・申請フォーム -->
+      <div id="tabNew" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <form id="attendanceForm" onsubmit="submitForm(event)" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1" id="formLblName">氏名</label>
+              <input type="text" id="name" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2.5 text-slate-600 font-medium cursor-not-allowed">
             </div>
-            <span style="font-size: 0.75rem; color: #64748b; margin-top: 4px; display: block;" data-i18n="hintDateRange">※1日のみの場合は終了日を空欄にしてください</span>
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1" id="formLblDept">部署 / 工程</label>
+              <input type="text" id="department" readonly class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2.5 text-slate-600 font-medium cursor-not-allowed">
+            </div>
           </div>
 
-          <div id="halfDateBlock" style="display: none;">
-            <input type="date" id="halfDate" name="halfDate" style="margin-bottom: 8px;" onchange="checkSameDay()">
-            <select id="halfAmpm" name="halfAmpm">
-              <option value="午前 (AM)" data-i18n="optAm">午前 (AM)</option>
-              <option value="午後 (PM)" data-i18n="optPm">午後 (PM)</option>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1" id="formLblType">連絡種別</label>
+            <select id="type" required class="w-full border border-slate-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">選択してください</option>
+              <option value="有給休暇">有給休暇</option>
+              <option value="欠勤">欠勤</option>
+              <option value="遅刻">遅刻</option>
+              <option value="早退">早退</option>
+              <option value="その他">その他・業務連絡</option>
             </select>
           </div>
 
-          <div id="dateTimeBlock" style="display: none;">
-            <input type="datetime-local" id="targetDateTime" name="targetDateTime" onchange="checkSameDay()">
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1" id="formLblDate">対象日 / 期間</label>
+            <input type="text" id="datetime" required placeholder="例: 2026/05/10 または 2026/05/10〜2026/05/12"
+              class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
           </div>
 
-          <div id="sameDayWarning" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ef4444; background-color: #fef2f2; border-radius: 8px; color: #dc2626; font-size: 0.85rem; font-weight: bold;">
-            <span data-i18n="msgSameDayNotice">⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。</span>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1" id="formLblReason">理由・詳細メッセージ</label>
+            <textarea id="reason" rows="4" required placeholder="理由や連絡事項を詳しく記入してください..."
+              class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
           </div>
 
-          <div id="paidLeaveInfo" class="paid-leave-info">
-            📅 今年度の有給使用日数：<span id="paidLeaveCount">0</span> 日
+          <div class="pt-2">
+            <button type="submit" id="btnFormSubmit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200 flex items-center justify-center space-x-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>送信する</span>
+            </button>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label data-i18n="lbl5Reason">5. 理由</label>
-          <div class="reason-grid">
-            <div class="type-card">
-              <input type="radio" id="reason1" name="reason" value="体調不良" onchange="toggleOtherReason(false)" required>
-              <label for="reason1" style="text-align: left;" data-i18n="reason1">① 体調不良</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="reason2" name="reason" value="通院" onchange="toggleOtherReason(false)">
-              <label for="reason2" style="text-align: left;" data-i18n="reason2">② 通院</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="reason3" name="reason" value="私用" onchange="toggleOtherReason(false)">
-              <label for="reason3" style="text-align: left;" data-i18n="reason3">③ 私用</label>
-            </div>
-            <div class="type-card">
-              <input type="radio" id="reason4" name="reason" value="その他" onchange="toggleOtherReason(true)">
-              <label for="reason4" style="text-align: left;" data-i18n="reason4">④ その他</label>
-            </div>
-          </div>
-          <div id="otherReasonBlock" style="display: none; margin-top: 8px;">
-            <textarea id="otherReasonText" name="otherReasonText" rows="2" data-i18n-ph="phReason" placeholder="理由を入力してください"></textarea>
-          </div>
-        </div>
-
-        <button type="submit" class="submit-btn" id="submitBtn" data-i18n="btnSubmit">送信する</button>
-      </form>
-
-      <div id="successMessage" class="success-msg">
-        <h2 style="color: var(--accent-color);" data-i18n="msgSuccess">送信完了！</h2>
-        <p style="margin-top: 10px; font-size: 0.85rem; color: #64748b;" data-i18n="msgNotified">管理者に通知されました。</p>
-        <button onclick="resetForm()" class="submit-btn" style="margin-top: 15px; background: #64748b;" data-i18n="btnAgain">もう一度入力する</button>
-      </div>
-    </div>
-
-    <!-- 連絡一覧画面 -->
-    <div id="listTab" style="display: none;">
-      <div class="header">
-        <h1 data-i18n="listTitle">連絡一覧・承認状況</h1>
+        </form>
       </div>
 
-      <div class="filter-box">
-        <div class="filter-row">
-          <select id="filterUserScope" onchange="filterList()">
-            <option value="me" selected data-i18n="optScopeMe">自分の表示</option>
-            <option value="all" data-i18n="optScopeAll">全員を表示</option>
-          </select>
-        </div>
-
-        <!-- 期間検索フィールド -->
-        <div class="filter-row">
-          <input type="date" id="filterStartDate" onchange="filterList()" placeholder="開始日">
-          <span>〜</span>
-          <input type="date" id="filterEndDate" onchange="filterList()" placeholder="終了日">
-        </div>
+      <!-- Tab 2: 一覧画面 -->
+      <div id="tabList" class="hidden space-y-4">
         
-        <div class="filter-row" style="margin-bottom: 0;">
-          <select id="filterDept" onchange="filterList()">
-            <option value="" data-i18n="filterAllDept">すべての工程</option>
-            <option value="QA外観検査" data-i18n="deptQAInspect">QA外観検査</option>
-            <option value="QA寸法測定" data-i18n="deptQAMeasure">QA寸法測定</option>
-            <option value="外観検査" data-i18n="deptInspect">外観検査</option>
-            <option value="画像検査" data-i18n="deptImgInspect">画像検査</option>
-            <option value="総務" data-i18n="deptGeneral">総務</option>
-            <option value="ダイシング" data-i18n="deptDicing">ダイシング</option>
-            <option value="トレイ詰・集計" data-i18n="deptTray">トレイ詰・集計</option>
-            <option value="担当窓口" data-i18n="deptContact">担当窓口</option>
-            <option value="密閉ボックス洗浄" data-i18n="deptCleaning">密閉ボックス洗浄</option>
-            <option value="ﾛｯﾄｶｰﾄﾞｽｷｬﾝ" data-i18n="deptScan">ﾛｯﾄｶｰﾄﾞｽｷｬﾝ</option>
-            <option value="通訳" data-i18n="deptInterpreter">通訳</option>
-            <option value="インフラ" data-i18n="deptInfra">インフラ</option>
-          </select>
+        <!-- 絞り込みフィルターエリア -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+          <div class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1">
+            <i class="fa-solid fa-filter"></i>
+            <span id="filterTitle">絞り込み条件</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- ユーザー範囲 -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" id="lblFilterScope">表示範囲</label>
+              <select id="filterUserScope" onchange="filterList()" class="w-full text-sm border border-slate-300 rounded-lg p-2 bg-slate-50">
+                <option value="all">全員の申請</option>
+                <option value="me">自分の申請のみ</option>
+              </select>
+            </div>
+
+            <!-- 部署フィルター -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" id="lblFilterDept">部署/工程</label>
+              <select id="filterDept" onchange="filterList()" class="w-full text-sm border border-slate-300 rounded-lg p-2 bg-slate-50">
+                <option value="">すべての部署</option>
+                <!-- JSで動的生成 -->
+              </select>
+            </div>
+
+            <!-- 開始日 -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" id="lblFilterStart">開始日</label>
+              <input type="date" id="filterStartDate" onchange="filterList()" class="w-full text-sm border border-slate-300 rounded-lg p-2 bg-slate-50">
+            </div>
+
+            <!-- 終了日 -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1" id="lblFilterEnd">終了日</label>
+              <input type="date" id="filterEndDate" onchange="filterList()" class="w-full text-sm border border-slate-300 rounded-lg p-2 bg-slate-50">
+            </div>
+          </div>
         </div>
-        
-        <button onclick="clearFilter()" style="width: 100%; padding: 6px; font-size: 0.8rem; background: #cbd5e1; border: none; border-radius: 4px; cursor: pointer; margin-top: 8px;" data-i18n="btnClearFilter">検索クリア</button>
+
+        <!-- 一覧カードコンテナ -->
+        <div id="recordsContainer" class="space-y-3">
+          <!-- JSで動的に追加されます -->
+        </div>
       </div>
 
-      <div id="recordsContainer">
-        <p style="text-align: center; color: #64748b; padding: 20px;" data-i18n="msgLoading">読み込み中...</p>
-      </div>
-    </div>
-
+    </main>
   </div>
-</div>
 
-<script>
-  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
+  <!-- ==================== チャットモーダル ==================== -->
+  <div id="chatModal" class="modal opacity-0 pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col h-[600px] max-h-[90vh] overflow-hidden border border-slate-200">
+      
+      <!-- モーダルヘッダー -->
+      <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
+        <div>
+          <h3 class="font-bold text-base flex items-center space-x-2">
+            <i class="fa-regular fa-comments text-blue-400"></i>
+            <span id="chatTitle">連絡スレッド</span>
+          </h3>
+          <p class="text-xs text-slate-400" id="chatSub">REC ID: <span id="chatRecId">-</span></p>
+        </div>
+        <button onclick="closeChatModal()" class="text-slate-400 hover:text-white p-2 rounded-lg transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
 
-  let currentLang = 'ja';
-  let userDeptJa = '';
-  let allRecords = [];
-  let isUserAdmin = false;
+      <!-- メッセージエリア -->
+      <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-3 bg-slate-50">
+        <!-- JSで動的に描画 -->
+      </div>
 
-  const i18nData = {
-    ja: {
-      authTitle: "本人確認",
-      authSub: "社員IDと暗証番号を入力してください",
-      lblEmpId: "社員ID",
-      lblPass: "暗証番号（月日4桁 例: 0912）",
-      btnLogin: "ログイン",
-      btnLogout: "ログアウト",
-      confirmLogout: "ログアウトしますか？",
-      errAuthBlank: "IDと暗証番号（月日）を入力してください",
-      errAuthCheck: "確認中...",
-      errAuthFail: "IDまたは暗証番号（月日）が違います",
-      errAuthNet: "通信エラーが発生しました",
-      tabSend: "勤怠送信",
-      tabList: "連絡一覧",
-      formTitle: "勤怠・連絡",
-      lbl1Name: "1. お名前",
-      lbl2Dept: "2. あなたの工程",
-      deptQAInspect: "QA外観検査",
-      deptQAMeasure: "QA寸法測定",
-      deptInspect: "外観検査",
-      deptImgInspect: "画像検査",
-      deptGeneral: "総務",
-      deptDicing: "ダイシング",
-      deptTray: "トレイ詰・集計",
-      deptContact: "担当窓口",
-      deptCleaning: "密閉ボックス洗浄",
-      deptScan: "ﾛｯﾄｶｰﾄﾞｽｷｬﾝ",
-      deptInterpreter: "通訳",
-      deptInfra: "インフラ",
-      lbl3Type: "3. 連絡の種類",
-      typePaid: "有給",
-      typeHalf: "半休",
-      typeAbsent: "欠勤",
-      typeLate: "遅刻",
-      typeEarly: "早退",
-      typeOut: "中抜け",
-      lbl4Date: "4. 日付・時間",
-      hintDateRange: "※1日のみの場合は終了日を空欄にしてください",
-      msgSameDayNotice: "⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。",
-      paidCountMsg: "📅 今年度の有給使用日数：",
-      countUnit: " 日",
-      optAm: "午前 (AM)",
-      optPm: "午後 (PM)",
-      lbl5Reason: "5. 理由",
-      reason1: "① 体調不良 (風邪・発熱)",
-      reason2: "② 通院",
-      reason3: "③ 私用",
-      reason4: "④ その他",
-      phReason: "理由を入力してください",
-      btnSubmit: "送信する",
-      btnSending: "送信中...",
-      msgSuccess: "送信完了！",
-      msgNotified: "管理者に通知されました。",
-      btnAgain: "もう一度入力する",
-      listTitle: "連絡一覧・承認状況",
-      optScopeMe: "自分の表示",
-      optScopeAll: "全員を表示",
-      filterAllDept: "すべての工程",
-      btnClearFilter: "検索クリア",
-      msgLoading: "読み込み中...",
-      msgNoData: "データがありません。",
-      msgLoadErr: "データの取得に失敗しました。",
-      mgrOk: "責任者: 承認済",
-      mgrNg: "責任者: 未承認",
-      facOk: "工場長: 承認済",
-      facNg: "工場長: 未承認",
-      alertTimecard: "⏰【確認・注意】\n・タイムカードの打刻を忘れずに行ってください！✨\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
-      alertResend: "⏰【確認】\n・送信内容を間違えた場合は、もう一度正しく入力して送信し直してください。\n\nこのまま申請を送信しますか？",
-      unset: "未設定",
-      btnMsgOpen: "💬 メッセージ送信",
-      btnMsgHasCount: "💬 メッセージあり ({count}件)",
-      phMsgInput: "メッセージを入力...",
-      btnMsgSend: "送信",
-      lblReasonTitle: "理由:"
-    },
-    vi: {
-      authTitle: "Xác nhận / Authentication",
-      authSub: "Vui lòng nhập Mã số nhân viên và Mật khẩu",
-      lblEmpId: "Mã số nhân viên",
-      lblPass: "Mật khẩu (4 số của tháng và ngày)",
-      btnLogin: "Đăng nhập",
-      btnLogout: "Đăng xuất",
-      confirmLogout: "Bạn có muốn đăng xuất không?",
-      errAuthBlank: "Vui lòng nhập Mã số nhân viên và Mật khẩu",
-      errAuthCheck: "Đang kiểm tra...",
-      errAuthFail: "Mã số nhân viên hoặc Mật khẩu không đúng",
-      errAuthNet: "Lỗi kết nối mạng",
-      tabSend: "Gửi thông báo",
-      tabList: "Danh sách",
-      formTitle: "Liên lạc nghỉ làm",
-      lbl1Name: "1. Họ và tên",
-      lbl2Dept: "2. Công đoạn làm việc",
-      deptQAInspect: "Kiểm tra ngoại quan QA",
-      deptQAMeasure: "Đo kích thước QA",
-      deptInspect: "Kiểm tra ngoại quan",
-      deptImgInspect: "Kiểm tra hình ảnh",
-      deptGeneral: "Tổng vụ",
-      deptDicing: "Cắt",
-      deptTray: "Chèn vào khay/Thống kê",
-      deptContact: "Phụ trách liên lạc với KC",
-      deptCleaning: "Rửa thùng kín khí",
-      deptScan: "Scan thẻ lô",
-      deptInterpreter: "Phiên dịch",
-      deptInfra: "Cơ sở hạ tầng",
-      lbl3Type: "3. Loại liên lạc",
-      typePaid: "Nghỉ phép",
-      typeHalf: "Nghỉ nửa ngày phép",
-      typeAbsent: "Nghỉ không phép",
-      typeLate: "Đi muộn",
-      typeEarly: "Về sớm",
-      typeOut: "Vắng giữa giờ",
-      lbl4Date: "4. Ngày / Giờ",
-      hintDateRange: "※ Nếu nghỉ 1 ngày, để trống ngày kết thúc",
-      msgSameDayNotice: "⚠️ Về nguyên tắc, phải đăng ký và được duyệt trước. Trường hợp đăng ký trong ngày, ngoài việc gửi vào hệ thống này, vui lòng LIÊN HỆ TRỰC TIẾP với người quản lý.",
-      paidCountMsg: "📅 Số ngày nghỉ phép đã dùng năm nay: ",
-      countUnit: " ngày",
-      optAm: "Sáng (AM)",
-      optPm: "Chiều (PM)",
-      lbl5Reason: "5. Lý do",
-      reason1: "① Sức khỏe có vấn đề",
-      reason2: "② Đi bệnh viện",
-      reason3: "③ Việc riêng",
-      reason4: "④ Khác",
-      phReason: "Nhập lý do chi tiết",
-      btnSubmit: "Gửi",
-      btnSending: "Đang gửi...",
-      msgSuccess: "Đã gửi thành công!",
-      msgNotified: "Đã thông báo cho quản lý.",
-      btnAgain: "Nhập lại",
-      listTitle: "Danh sách & Trạng thái",
-      optScopeMe: "Chỉ của tôi",
-      optScopeAll: "Tất cả mọi người",
-      filterAllDept: "Tất cả công đoạn",
-      btnClearFilter: "Xóa lọc",
-      msgLoading: "Đang tải...",
-      msgNoData: "Không có dữ liệu.",
-      msgLoadErr: "Tải dữ liệu thất bại.",
-      mgrOk: "Quản lý: Đã duyệt",
-      mgrNg: "Quản lý: Chờ duyệt",
-      facOk: "Xưởng trưởng: Đã duyệt",
-      facNg: "Xưởng trưởng: Chờ duyệt",
-      alertTimecard: "⏰【Chú ý】\n・Hãy nhớ bấm thẻ chấm công (Timecard) nhé! ✨\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
-      alertResend: "⏰【Xác nhận】\n・Nếu nhập sai nội dung, vui lòng nhập và gửi lại một lần nữa.\n\nBạn có muốn gửi đăng ký này không?",
-      unset: "Chưa thiết lập",
-      btnMsgOpen: "💬 Gửi tin nhắn",
-      btnMsgHasCount: "💬 Có tin nhắn ({count})",
-      phMsgInput: "Nhập tin nhắn...",
-      btnMsgSend: "Gửi",
-      lblReasonTitle: "Lý do:"
-    },
-    en: {
-      authTitle: "Authentication",
-      authSub: "Please enter your Employee ID and PIN",
-      lblEmpId: "Employee ID",
-      lblPass: "PIN (4 digits MMDD)",
-      btnLogin: "Login",
-      btnLogout: "Logout",
-      confirmLogout: "Are you sure you want to log out?",
-      errAuthBlank: "Please enter ID and PIN",
-      errAuthCheck: "Checking...",
-      errAuthFail: "Incorrect ID or PIN",
-      errAuthNet: "Network error occurred",
-      tabSend: "Submit Notice",
-      tabList: "Notice List",
-      formTitle: "Absence Notice",
-      lbl1Name: "1. Full Name",
-      lbl2Dept: "2. Department",
-      deptQAInspect: "QA Visual Inspection",
-      deptQAMeasure: "QA Dimension Measurement",
-      deptInspect: "Visual Inspection",
-      deptImgInspect: "Image Inspection",
-      deptGeneral: "General Affairs",
-      deptDicing: "Dicing",
-      deptTray: "Tray Packing & Tally",
-      deptContact: "Contact Window",
-      deptCleaning: "Sealed Box Washing",
-      deptScan: "Lot Card Scan",
-      deptInterpreter: "Interpretation",
-      deptInfra: "Infrastructure",
-      lbl3Type: "3. Type of Notice",
-      typePaid: "Paid Leave",
-      typeHalf: "Half Day",
-      typeAbsent: "Absent",
-      typeLate: "Late Arrival",
-      typeEarly: "Early Leave",
-      typeOut: "Temporary Out",
-      lbl4Date: "4. Date & Time",
-      hintDateRange: "※ Leave end date blank for single-day requests",
-      msgSameDayNotice: "⚠️ Prior application and approval are required in principle. For same-day requests, please CONTACT YOUR MANAGER DIRECTLY in addition to submitting this form.",
-      paidCountMsg: "📅 Paid Leave days used this fiscal year: ",
-      countUnit: " day(s)",
-      optAm: "Morning (AM)",
-      optPm: "Afternoon (PM)",
-      lbl5Reason: "5. Reason",
-      reason1: "① Sick / Unwell",
-      reason2: "② Hospital / Clinic",
-      reason3: "③ Personal Matters",
-      reason4: "④ Other",
-      phReason: "Please enter your reason",
-      btnSubmit: "Submit",
-      btnSending: "Submitting...",
-      msgSuccess: "Submitted Successfully!",
-      msgNotified: "Manager has been notified.",
-      btnAgain: "Submit Another",
-      listTitle: "Notice List & Status",
-      optScopeMe: "My Requests",
-      optScopeAll: "All Requests",
-      filterAllDept: "All Departments",
-      btnClearFilter: "Clear Filter",
-      msgLoading: "Loading...",
-      msgNoData: "No data available.",
-      msgLoadErr: "Failed to load data.",
-      mgrOk: "Manager: Approved",
-      mgrNg: "Manager: Pending",
-      facOk: "Plant Mgr: Approved",
-      facNg: "Plant Mgr: Pending",
-      alertTimecard: "⏰【Notice】\n・Please remember to punch your Timecard! ✨\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
-      alertResend: "⏰【Confirm】\n・If you make a mistake, please submit it again correctly.\n\nDo you want to submit this request?",
-      unset: "Not set",
-      btnMsgOpen: "💬 Send Message",
-      btnMsgHasCount: "💬 Messages ({count})",
-      phMsgInput: "Type a message...",
-      btnMsgSend: "Send",
-      lblReasonTitle: "Reason:"
-    }
-  };
+      <!-- 入力エリア -->
+      <form id="chatForm" onsubmit="sendChatMessage(event)" class="p-3 bg-white border-t border-slate-200 flex items-center space-x-2">
+        <input type="text" id="chatInput" required placeholder="返信メッセージを入力..."
+          class="flex-grow border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition flex items-center space-x-1">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
 
-  const deptKeyMap = {
-    "QA外観検査": "deptQAInspect",
-    "QA寸法測定": "deptQAMeasure",
-    "外観検査": "deptInspect",
-    "画像検査": "deptImgInspect",
-    "総務": "deptGeneral",
-    "ダイシング": "deptDicing",
-    "トレイ詰・集計": "deptTray",
-    "担当窓口": "deptContact",
-    "密閉ボックス洗浄": "deptCleaning",
-    "ﾛｯﾄｶｰﾄﾞｽｷｬﾝ": "deptScan",
-    "ロットカードスキャン": "deptScan",
-    "通訳": "deptInterpreter",
-    "インフラ": "deptInfra"
-  };
 
-  const typeKeyMap = {
-    "有給": "typePaid",
-    "半休": "typeHalf",
-    "欠勤": "typeAbsent",
-    "遅刻": "typeLate",
-    "早退": "typeEarly",
-    "中抜け": "typeOut"
-  };
+  <!-- JavaScript ロジック -->
+  <script>
+    // ==========================================
+    // 【設定】GASのWeb App URLをここに貼付
+    // ==========================================
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
 
-  document.getElementById('startDate').valueAsDate = new Date();
-  document.getElementById('halfDate').valueAsDate = new Date();
+    // 状態管理
+    let currentUser = null;
+    let isUserAdmin = false;
+    let userDepartment = "";
+    let currentLang = "ja";
+    let allRecords = [];
+    let currentActiveRecId = null;
 
-  function translateDept(deptJa, lang) {
-    if (!deptJa) return i18nData[lang].unset;
-    const key = deptKeyMap[deptJa.trim()];
-    return (key && i18nData[lang][key]) ? i18nData[lang][key] : deptJa;
-  }
-
-  function translateType(typeJa, lang) {
-    if (!typeJa) return typeJa;
-    const key = typeKeyMap[typeJa.trim()];
-    return (key && i18nData[lang][key]) ? i18nData[lang][key] : typeJa;
-  }
-
-  function setLanguage(lang) {
-    currentLang = lang;
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.innerText.toLowerCase() === (lang === 'ja' ? 'jp' : lang));
-    });
-
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (i18nData[lang][key]) {
-        el.innerText = i18nData[lang][key];
+    // 多言語辞書データ
+    const i18nData = {
+      ja: {
+        loginTitle: "本人確認ログイン",
+        loginSub: "従業員番号と生年月日を入力してください",
+        lblEmpId: "従業員番号",
+        lblDob: "暗証番号 / 生年月日",
+        btnLogin: "ログイン",
+        appTitle: "勤怠・連絡管理システム",
+        lblPaidLeaveTitle: "本年度の有給休暇取得状況",
+        lblDaysUnit: "日 取得済み",
+        lblPaidLeaveNotice: "※当システム経由の全取得合計",
+        tabTitleNew: "新規連絡・申請",
+        tabTitleList: "連絡・申請履歴一覧",
+        formLblName: "氏名",
+        formLblDept: "部署 / 工程",
+        formLblType: "連絡種別",
+        formLblDate: "対象日 / 期間",
+        formLblReason: "理由・詳細メッセージ",
+        btnSubmit: "送信する",
+        filterTitle: "絞り込み条件",
+        lblFilterScope: "表示範囲",
+        lblFilterDept: "部署/工程",
+        lblFilterStart: "開始日",
+        lblFilterEnd: "終了日",
+        msgLoading: "データを読み込み中...",
+        msgLoadErr: "データの取得に失敗しました",
+        msgSuccessSend: "申請を送信しました！",
+        msgSending: "送信中...",
+        optAll: "全員の申請",
+        optMe: "自分の申請のみ",
+        optAllDept: "すべての部署"
+      },
+      vi: {
+        loginTitle: "Xác nhận談 danh tính",
+        loginSub: "Vui lòng nhập Mã số nhân viên và Ngày sinh",
+        lblEmpId: "Mã số nhân viên",
+        lblDob: "Mật khẩu / Ngày sinh",
+        btnLogin: "Đăng nhập",
+        appTitle: "Hệ thống Quản lý Chuyên cần",
+        lblPaidLeaveTitle: "Tình hình nghỉ phép có lương năm nay",
+        lblDaysUnit: "ngày đã nghỉ",
+        lblPaidLeaveNotice: "※Tổng số ngày nghỉ qua hệ thống",
+        tabTitleNew: "Tạo đơn / Thông báo mới",
+        tabTitleList: "Lịch sử đơn & Thông báo",
+        formLblName: "Họ và tên",
+        formLblDept: "Bộ phận / Công đoạn",
+        formLblType: "Loại thông báo",
+        formLblDate: "Ngày / Thời gian対象",
+        formLblReason: "Lý do / Tin nhắn chi tiết",
+        btnSubmit: "Gửi đơn",
+        filterTitle: "Điều kiện lọc",
+        lblFilterScope: "Phạm vi hiển thị",
+        lblFilterDept: "Bộ phận",
+        lblFilterStart: "Từ ngày",
+        lblFilterEnd: "Đến ngày",
+        msgLoading: "Đang tải dữ liệu...",
+        msgLoadErr: "Tải dữ liệu thất bại",
+        msgSuccessSend: "Đã gửi đơn thành công!",
+        msgSending: "Đang gửi...",
+        optAll: "Tất cả mọi người",
+        optMe: "Chỉ đơn của tôi",
+        optAllDept: "Tất cả bộ phận"
+      },
+      en: {
+        loginTitle: "Identity Authentication",
+        loginSub: "Enter your Employee ID and Birthdate",
+        lblEmpId: "Employee ID",
+        lblDob: "Password / DOB",
+        btnLogin: "Login",
+        appTitle: "Attendance & Communication System",
+        lblPaidLeaveTitle: "Paid Leave Taken This Year",
+        lblDaysUnit: "Days Taken",
+        lblPaidLeaveNotice: "* Total days recorded in system",
+        tabTitleNew: "New Application",
+        tabTitleList: "History & Status",
+        formLblName: "Full Name",
+        formLblDept: "Department / Section",
+        formLblType: "Request Type",
+        formLblDate: "Target Date / Period",
+        formLblReason: "Reason / Details",
+        btnSubmit: "Submit Request",
+        filterTitle: "Filter Options",
+        lblFilterScope: "Scope",
+        lblFilterDept: "Department",
+        lblFilterStart: "Start Date",
+        lblFilterEnd: "End Date",
+        msgLoading: "Loading data...",
+        msgLoadErr: "Failed to load data",
+        msgSuccessSend: "Successfully submitted!",
+        msgSending: "Submitting...",
+        optAll: "All Employees",
+        optMe: "My Requests Only",
+        optAllDept: "All Departments"
       }
-    });
+    };
 
-    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-      const key = el.getAttribute('data-i18n-ph');
-      if (i18nData[lang][key]) {
-        el.placeholder = i18nData[lang][key];
+    // 初期化処理
+    window.onload = function() {
+      // ローカルストレージチェック
+      const savedUser = localStorage.getItem('attendance_user');
+      if (savedUser) {
+        const uData = JSON.parse(savedUser);
+        currentUser = uData.userName;
+        isUserAdmin = uData.isAdmin;
+        userDepartment = uData.department;
+        showAppScreen();
       }
-    });
+    };
 
-    if (userDeptJa) {
-      document.getElementById('department').value = translateDept(userDeptJa, lang);
+    // 言語切り替え
+    function changeLanguage(lang) {
+      currentLang = lang;
+      const dict = i18nData[lang];
+
+      document.getElementById('loginTitle').innerText = dict.loginTitle;
+      document.getElementById('loginSub').innerText = dict.loginSub;
+      document.getElementById('lblEmpId').innerText = dict.lblEmpId;
+      document.getElementById('lblDob').innerText = dict.lblDob;
+      document.getElementById('btnLoginSubmit').innerText = dict.btnLogin;
+
+      document.getElementById('appTitle').innerText = dict.appTitle;
+      document.getElementById('lblPaidLeaveTitle').innerText = dict.lblPaidLeaveTitle;
+      document.getElementById('lblDaysUnit').innerText = dict.lblDaysUnit;
+      document.getElementById('lblPaidLeaveNotice').innerText = dict.lblPaidLeaveNotice;
+
+      document.getElementById('tabTitleNew').innerText = dict.tabTitleNew;
+      document.getElementById('tabTitleList').innerText = dict.tabTitleList;
+
+      document.getElementById('formLblName').innerText = dict.formLblName;
+      document.getElementById('formLblDept').innerText = dict.formLblDept;
+      document.getElementById('formLblType').innerText = dict.formLblType;
+      document.getElementById('formLblDate').innerText = dict.formLblDate;
+      document.getElementById('formLblReason').innerText = dict.formLblReason;
+      document.getElementById('btnFormSubmit').querySelector('span').innerText = dict.btnSubmit;
+
+      document.getElementById('filterTitle').innerText = dict.filterTitle;
+      document.getElementById('lblFilterScope').innerText = dict.lblFilterScope;
+      document.getElementById('lblFilterDept').innerText = dict.lblFilterDept;
+      document.getElementById('lblFilterStart').innerText = dict.lblFilterStart;
+      document.getElementById('lblFilterEnd').innerText = dict.lblFilterEnd;
+
+      // フィルターのドロップダウン初期テキスト変更
+      const scopeSelect = document.getElementById('filterUserScope');
+      scopeSelect.options[0].text = dict.optAll;
+      scopeSelect.options[1].text = dict.optMe;
+
+      renderRecords(allRecords);
     }
 
-    updatePaidLeaveCountUI();
+    // ログイン処理
+    function handleLogin(e) {
+      e.preventDefault();
+      const empId = document.getElementById('loginEmpId').value.trim();
+      const dob = document.getElementById('loginDob').value.trim();
+      const errDiv = document.getElementById('loginError');
 
-    if (allRecords.length > 0) {
-      filterList();
+      errDiv.classList.add('hidden');
+
+      fetch(`${GAS_WEB_APP_URL}?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          currentUser = data.userName;
+          isUserAdmin = data.isAdmin;
+          userDepartment = data.department;
+
+          localStorage.setItem('attendance_user', JSON.stringify(data));
+          showAppScreen();
+        } else {
+          errDiv.innerText = data.message || "認証に失敗しました";
+          errDiv.classList.remove('hidden');
+        }
+      })
+      .catch(err => {
+        errDiv.innerText = "通信エラーが発生しました";
+        errDiv.classList.remove('hidden');
+      });
     }
-  }
 
-  function checkAuth() {
-    const empId = document.getElementById('empIdInput').value.trim();
-    const dob = document.getElementById('passInput').value.trim();
-    const errEl = document.getElementById('passError');
-    const loginBtn = document.getElementById('loginBtn');
+    // アプリ画面表示
+    function showAppScreen() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
 
-    if (!empId || !dob) {
-      errEl.innerText = i18nData[currentLang].errAuthBlank;
-      errEl.style.display = 'block';
-      return;
+      document.getElementById('userInfo').innerText = `${userDepartment} - ${currentUser}`;
+      document.getElementById('name').value = currentUser;
+      document.getElementById('department').value = userDepartment;
+
+      if (isUserAdmin) {
+        document.getElementById('adminBadge').classList.remove('hidden');
+      }
+
+      preloadRecords();
     }
 
-    loginBtn.disabled = true;
-    loginBtn.innerText = i18nData[currentLang].errAuthCheck;
-    errEl.style.display = 'none';
+    // ログアウト
+    function logout() {
+      localStorage.removeItem('attendance_user');
+      location.reload();
+    }
 
-    fetch(`${GAS_WEB_APP_URL}?action=authenticate&empId=${encodeURIComponent(empId)}&dob=${encodeURIComponent(dob)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        userDeptJa = data.department || '';
-        isUserAdmin = !!data.isAdmin;
-        document.getElementById('name').value = data.userName;
-        document.getElementById('department').value = translateDept(userDeptJa, currentLang);
+    // タブ切り替え
+    function switchTab(tab) {
+      const tabNew = document.getElementById('tabNew');
+      const tabList = document.getElementById('tabList');
+      const btnNew = document.getElementById('tabBtnNew');
+      const btnList = document.getElementById('tabBtnList');
 
-        document.getElementById('loginUserInfo').innerText = `👤 ${data.userName}`;
-
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        preloadRecords();
-        checkSameDay();
+      if (tab === 'new') {
+        tabNew.classList.remove('hidden');
+        tabList.classList.add('hidden');
+        btnNew.className = "py-3 px-6 text-sm font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2";
+        btnList.className = "py-3 px-6 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 focus:outline-none flex items-center space-x-2";
       } else {
-        errEl.innerText = i18nData[currentLang].errAuthFail;
-        errEl.style.display = 'block';
-        loginBtn.disabled = false;
-        loginBtn.innerText = i18nData[currentLang].btnLogin;
+        tabNew.classList.add('hidden');
+        tabList.classList.remove('hidden');
+        btnList.className = "py-3 px-6 text-sm font-bold border-b-2 border-blue-600 text-blue-600 focus:outline-none flex items-center space-x-2";
+        btnNew.className = "py-3 px-6 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-700 focus:outline-none flex items-center space-x-2";
+        fetchRecords();
       }
-    })
-    .catch(err => {
-      errEl.innerText = i18nData[currentLang].errAuthNet;
-      errEl.style.display = 'block';
-      loginBtn.disabled = false;
-      loginBtn.innerText = i18nData[currentLang].btnLogin;
-    });
-  }
-
-  function logout() {
-    if (!confirm(i18nData[currentLang].confirmLogout)) return;
-
-    document.getElementById('empIdInput').value = '';
-    document.getElementById('passInput').value = '';
-    document.getElementById('loginBtn').disabled = false;
-    document.getElementById('loginBtn').innerText = i18nData[currentLang].btnLogin;
-
-    userDeptJa = '';
-    allRecords = [];
-    isUserAdmin = false;
-
-    resetForm();
-
-    document.getElementById('mainApp').style.display = 'none';
-    document.getElementById('authScreen').style.display = 'block';
-  }
-
-  function switchTab(tab) {
-    const formTab = document.getElementById('formTab');
-    const listTab = document.getElementById('listTab');
-    const btns = document.querySelectorAll('.tab-btn');
-
-    if (tab === 'form') {
-      formTab.style.display = 'block';
-      listTab.style.display = 'none';
-      btns[0].classList.add('active');
-      btns[1].classList.remove('active');
-    } else {
-      formTab.style.display = 'none';
-      listTab.style.display = 'block';
-      btns[0].classList.remove('active');
-      btns[1].classList.add('active');
-      fetchRecords();
-    }
-  }
-
-  function checkSameDay() {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-
-    const type = document.querySelector('input[name="type"]:checked')?.value || '';
-    let selectedDateStr = '';
-
-    if (type === '有給' || type === '欠勤') {
-      selectedDateStr = document.getElementById('startDate').value;
-    } else if (type === '半休') {
-      selectedDateStr = document.getElementById('halfDate').value;
-    } else if (type === '遅刻' || type === '早退' || type === '中抜け') {
-      const val = document.getElementById('targetDateTime').value;
-      if (val) selectedDateStr = val.split('T')[0];
     }
 
-    const warningEl = document.getElementById('sameDayWarning');
-    if (selectedDateStr && selectedDateStr === todayStr) {
-      warningEl.style.display = 'block';
-    } else {
-      warningEl.style.display = 'none';
-    }
-  }
-
-  function toggleDateInput(mode) {
-    document.getElementById('singleDateBlock').style.display = (mode === 'date') ? 'block' : 'none';
-    document.getElementById('halfDateBlock').style.display = (mode === 'half') ? 'block' : 'none';
-    document.getElementById('dateTimeBlock').style.display = (mode === 'datetime') ? 'block' : 'none';
-
-    const selectedType = document.querySelector('input[name="type"]:checked')?.value;
-    const paidInfoEl = document.getElementById('paidLeaveInfo');
-    if (selectedType === '有給' || selectedType === '半休') {
-      paidInfoEl.style.display = 'block';
-      calculatePaidLeaveCount();
-    } else {
-      paidInfoEl.style.display = 'none';
+    // データの事前取得（有給日数算出用）
+    function preloadRecords() {
+      fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUser)}&isAdmin=${isUserAdmin}&limit=300`)
+      .then(res => res.json())
+      .then(data => {
+        allRecords = data;
+        calculatePaidLeave(data);
+        populateDeptFilter(data);
+      })
+      .catch(err => console.log("Preload error"));
     }
 
-    checkSameDay();
-  }
+    // 一覧用データ取得
+    function fetchRecords() {
+      const container = document.getElementById('recordsContainer');
+      container.innerHTML = `<p class="text-center text-slate-500 py-8">${i18nData[currentLang].msgLoading}</p>`;
 
-  function calculatePaidLeaveCount() {
-    const userName = document.getElementById('name').value;
-    if (!userName || allRecords.length === 0) return;
-
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    
-    let startDate, endDate;
-    const fiscalStartThisYear = new Date(currentYear, 2, 16);
-
-    if (today >= fiscalStartThisYear) {
-      startDate = new Date(currentYear, 2, 16);
-      endDate = new Date(currentYear + 1, 2, 15, 23, 59, 59);
-    } else {
-      startDate = new Date(currentYear - 1, 2, 16);
-      endDate = new Date(currentYear, 2, 15, 23, 59, 59);
+      fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUser)}&isAdmin=${isUserAdmin}&limit=300`)
+      .then(res => res.json())
+      .then(data => {
+        allRecords = data;
+        calculatePaidLeave(data);
+        populateDeptFilter(data);
+        filterList();
+      })
+      .catch(err => {
+        container.innerHTML = `<p class="text-center text-red-500 py-8">${i18nData[currentLang].msgLoadErr}</p>`;
+      });
     }
 
-    let totalDays = 0;
-    allRecords.forEach(r => {
-      const mgrStatus = String(r.managerStatus || '').trim();
-      const facStatus = String(r.factoryStatus || '').trim();
-      const isMgrApproved = !mgrStatus.includes("未") && !mgrStatus.includes("Pending") && (mgrStatus.includes("承認") || mgrStatus.includes("Approved"));
-      const isFacApproved = !facStatus.includes("未") && !facStatus.includes("Pending") && (facStatus.includes("承認") || facStatus.includes("Approved"));
+    // 部署フィルターの動的生成
+    function populateDeptFilter(data) {
+      const deptSelect = document.getElementById('filterDept');
+      const currentVal = deptSelect.value;
+      const depts = [...new Set(data.map(r => r.department).filter(Boolean))];
 
-      if (isMgrApproved && isFacApproved) {
-        if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
+      deptSelect.innerHTML = `<option value="">${i18nData[currentLang].optAllDept}</option>`;
+      depts.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = d;
+        deptSelect.appendChild(opt);
+      });
+      deptSelect.value = currentVal;
+    }
+
+    // 有給消化日数の計算
+    function calculatePaidLeave(data) {
+      let count = 0;
+      data.forEach(r => {
+        if (r.name === currentUser && r.type === "有給休暇") {
+          count++;
+        }
+      });
+      document.getElementById('paidLeaveDays').innerText = count;
+    }
+
+    // フィルタリング処理
+    function filterList() {
+      const scope = document.getElementById('filterUserScope').value;
+      const startDateVal = document.getElementById('filterStartDate').value;
+      const endDateVal = document.getElementById('filterEndDate').value;
+      const selectedDept = document.getElementById('filterDept').value;
+
+      const filtered = allRecords.filter(r => {
+        if (scope === 'me' && r.name !== currentUser) return false;
+        if (selectedDept && r.department !== selectedDept) return false;
+
+        if (startDateVal || endDateVal) {
+          if (!r.datetime) return false;
           const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
-          if (dateMatches) {
-            const recStart = new Date(dateMatches[0].replace(/-/g, '/'));
-            if (recStart >= startDate && recStart <= endDate) {
-              if (r.type === '半休') {
-                totalDays += 0.5;
-              } else if (dateMatches.length >= 2) {
-                const recEnd = new Date(dateMatches[1].replace(/-/g, '/'));
-                const diffTime = Math.abs(recEnd - recStart);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                totalDays += diffDays;
-              } else {
-                totalDays += 1;
-              }
-            }
+          if (!dateMatches) return false;
+
+          const recDates = dateMatches.map(d => new Date(d.replace(/-/g, '/')).getTime());
+          const recMinDate = Math.min(...recDates);
+          const recMaxDate = Math.max(...recDates);
+
+          if (startDateVal) {
+            const filterStart = new Date(startDateVal.replace(/-/g, '/') + ' 00:00:00').getTime();
+            if (recMaxDate < filterStart) return false;
+          }
+
+          if (endDateVal) {
+            const filterEnd = new Date(endDateVal.replace(/-/g, '/') + ' 23:59:59').getTime();
+            if (recMinDate > filterEnd) return false;
           }
         }
-      }
-    });
+        return true;
+      });
 
-    document.getElementById('paidLeaveCount').innerText = totalDays;
-    updatePaidLeaveCountUI();
-  }
-
-  function updatePaidLeaveCountUI() {
-    const count = document.getElementById('paidLeaveCount').innerText;
-    const infoEl = document.getElementById('paidLeaveInfo');
-    infoEl.innerHTML = `${i18nData[currentLang].paidCountMsg}<span id="paidLeaveCount">${count}</span>${i18nData[currentLang].countUnit}`;
-  }
-
-  function toggleOtherReason(isOther) {
-    document.getElementById('otherReasonBlock').style.display = isOther ? 'block' : 'none';
-    if (!isOther) {
-      document.getElementById('otherReasonText').value = '';
-    }
-  }
-
-  document.getElementById('attendanceForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const type = document.querySelector('input[name="type"]:checked')?.value || '';
-
-    let confirmMsg = (type === '遅刻' || type === '早退' || type === '中抜け') 
-      ? i18nData[currentLang].alertTimecard 
-      : i18nData[currentLang].alertResend;
-
-    if (!confirm(confirmMsg)) return;
-
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerText = i18nData[currentLang].btnSending;
-    submitBtn.disabled = true;
-
-    const name = document.getElementById('name').value;
-    const department = userDeptJa || document.getElementById('department').value;
-    
-    let datetime = '';
-    if (type === '有給' || type === '欠勤') {
-      const startDate = document.getElementById('startDate').value;
-      const endDate = document.getElementById('endDate').value;
-      datetime = (endDate && endDate !== startDate) ? `${startDate} 〜 ${endDate}` : startDate;
-    } else if (type === '半休') {
-      datetime = `${document.getElementById('halfDate').value} ${document.getElementById('halfAmpm').value}`;
-    } else {
-      datetime = document.getElementById('targetDateTime').value.replace('T', ' ');
+      renderRecords(filtered);
     }
 
-    let reason = document.querySelector('input[name="reason"]:checked')?.value || '';
-    if (reason === 'その他') {
-      const otherDetail = document.getElementById('otherReasonText').value;
-      reason = otherDetail ? `その他: ${otherDetail}` : 'その他';
-    }
+    // レコード一覧の描画
+    function renderRecords(records) {
+      const container = document.getElementById('recordsContainer');
+      container.innerHTML = '';
 
-    const payload = new URLSearchParams();
-    payload.append('action', 'addAttendance');
-    payload.append('name', name);
-    payload.append('department', department);
-    payload.append('type', type);
-    payload.append('datetime', datetime);
-    payload.append('reason', reason);
-
-    fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: payload.toString()
-    })
-    .then(response => {
-      document.getElementById('attendanceForm').style.display = 'none';
-      document.getElementById('successMessage').style.display = 'block';
-    })
-    .catch(error => {
-      alert("送信に失敗しました。");
-      submitBtn.innerText = i18nData[currentLang].btnSubmit;
-      submitBtn.disabled = false;
-    });
-  });
-
-  function resetForm() {
-    const savedName = document.getElementById('name').value;
-    
-    document.getElementById('attendanceForm').reset();
-    
-    document.getElementById('name').value = savedName;
-    document.getElementById('department').value = translateDept(userDeptJa, currentLang);
-
-    document.getElementById('attendanceForm').style.display = 'block';
-    document.getElementById('successMessage').style.display = 'none';
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerText = i18nData[currentLang].btnSubmit;
-    submitBtn.disabled = false;
-    document.getElementById('startDate').valueAsDate = new Date();
-    document.getElementById('paidLeaveInfo').style.display = 'none';
-    toggleDateInput('date');
-    toggleOtherReason(false);
-  }
-
-  function preloadRecords() {
-    const currentUserName = document.getElementById('name').value;
-    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
-    .then(res => res.json())
-    .then(data => {
-      allRecords = data;
-    })
-    .catch(err => console.log("Preload error"));
-  }
-
-  function fetchRecords() {
-    const container = document.getElementById('recordsContainer');
-    container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
-
-    const currentUserName = document.getElementById('name').value;
-    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
-    .then(res => res.json())
-    .then(data => {
-      allRecords = data;
-      filterList();
-    })
-    .catch(err => {
-      container.innerHTML = `<p style="text-align: center; color: red;">${i18nData[currentLang].msgLoadErr}</p>`;
-    });
-  }
-
-  function renderRecords(records) {
-    const container = document.getElementById('recordsContainer');
-    if (!records || records.length === 0) {
-      container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgNoData}</p>`;
-      return;
-    }
-
-    const currentUserName = document.getElementById('name').value;
-
-    let html = '';
-    records.forEach(r => {
-      const mgrStatus = String(r.managerStatus || '').trim();
-      const facStatus = String(r.factoryStatus || '').trim();
-
-      const isMgrApproved = !mgrStatus.includes("未") && !mgrStatus.includes("Pending") && (mgrStatus.includes("承認") || mgrStatus.includes("Approved"));
-      const isFacApproved = !facStatus.includes("未") && !facStatus.includes("Pending") && (facStatus.includes("承認") || facStatus.includes("Approved"));
-
-      const mgrBadgeClass = isMgrApproved ? 'badge-approved' : 'badge-pending';
-      const facBadgeClass = isFacApproved ? 'badge-approved' : 'badge-pending';
-
-      const mgrText = isMgrApproved ? i18nData[currentLang].mgrOk : i18nData[currentLang].mgrNg;
-      const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
-
-      const displayDept = translateDept(r.department, currentLang);
-      const displayType = translateType(r.type, currentLang);
-
-      const isOwner = (r.name === currentUserName);
-      const canAccessPrivateInfo = isOwner || isUserAdmin;
-
-      let reasonHtml = '';
-      if (canAccessPrivateInfo && r.reason) {
-        reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
-      }
-
-      let msgAreaHtml = '';
-      if (canAccessPrivateInfo) {
-        const count = r.msgCount || 0;
-        let btnText = '';
-        let btnStyle = '';
-
-        if (count > 0) {
-          btnText = i18nData[currentLang].btnMsgHasCount.replace('{count}', count);
-          btnStyle = 'background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5;';
-        } else {
-          btnText = i18nData[currentLang].btnMsgOpen;
-          btnStyle = 'background: #e2e8f0; color: #334155; border: 1px solid transparent;';
-        }
-
-        msgAreaHtml = `
-          <button class="msg-toggle-btn" style="${btnStyle}" onclick="toggleMessageBox('${r.id}')">
-            <span id="msgBtnText_${r.id}">${btnText}</span>
-            <span>▼</span>
-          </button>
-
-          <div class="msg-container" id="msgBox_${r.id}">
-            <div class="msg-history" id="msgHistory_${r.id}">
-              <span style="font-size:0.75rem; color:#94a3b8;">読み込み中...</span>
-            </div>
-            <div class="msg-input-box">
-              <input type="text" id="msgInput_${r.id}" placeholder="${i18nData[currentLang].phMsgInput}">
-              <button onclick="sendChatMessage('${r.id}')">${i18nData[currentLang].btnMsgSend}</button>
-            </div>
-          </div>
-        `;
-      }
-
-      html += `
-        <div class="list-card">
-          <div class="list-header">
-            <span class="list-name">${r.name} <span class="list-dept">${displayDept}</span></span>
-            <div class="badge-group">
-              <span class="badge ${mgrBadgeClass}">${mgrText}</span>
-              <span class="badge ${facBadgeClass}">${facText}</span>
-            </div>
-          </div>
-          <div class="list-detail">
-            <strong>【${displayType}】</strong> ${r.datetime}
-          </div>
-          ${reasonHtml}
-          ${msgAreaHtml}
-        </div>
-      `;
-    });
-    container.innerHTML = html;
-  }
-
-  function toggleMessageBox(recordId) {
-    const box = document.getElementById(`msgBox_${recordId}`);
-    if (box.style.display === 'block') {
-      box.style.display = 'none';
-    } else {
-      box.style.display = 'block';
-      loadChatMessages(recordId);
-    }
-  }
-
-  function loadChatMessages(recordId) {
-    const historyEl = document.getElementById(`msgHistory_${recordId}`);
-    const currentUserName = document.getElementById('name').value;
-    
-    fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}`)
-    .then(res => res.json())
-    .then(list => {
-      if (!list || list.length === 0) {
-        historyEl.innerHTML = `<span style="font-size:0.75rem; color:#94a3b8;">メッセージはありません</span>`;
+      if (records.length === 0) {
+        container.innerHTML = `<div class="bg-white p-8 rounded-xl text-center text-slate-400 border border-slate-200">データが見つかりません</div>`;
         return;
       }
-      
-      let html = '';
-      list.forEach(m => {
-        const isSelf = (m.sender === currentUserName) || (m.role === 'Applicant' && !isUserAdmin);
-        const cls = isSelf ? 'applicant' : 'manager';
-        
-        html += `
-          <div class="msg-item ${cls}">
-            <div class="msg-meta">${m.sender || ''} • ${m.timestamp || ''}</div>
-            <div>${m.message || ''}</div>
+
+      records.forEach(r => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition space-y-2";
+
+        const typeColor = r.type === '有給休暇' ? 'bg-emerald-100 text-emerald-800' :
+                          r.type === '欠勤' ? 'bg-rose-100 text-rose-800' :
+                          'bg-amber-100 text-amber-800';
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs ${typeColor} font-bold px-2 py-0.5 rounded-full">${r.type}</span>
+              <span class="text-xs text-slate-400 ml-2">${r.timestamp}</span>
+            </div>
+            <button onclick="openChatModal('${r.id}')" class="relative text-slate-500 hover:text-blue-600 p-1">
+              <i class="fa-regular fa-comment-dots text-lg"></i>
+              ${r.msgCount > 0 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">${r.msgCount}</span>` : ''}
+            </button>
           </div>
+
+          <div class="flex items-baseline space-x-2">
+            <h4 class="font-bold text-slate-800">${r.name}</h4>
+            <span class="text-xs text-slate-500">(${r.department})</span>
+          </div>
+
+          <p class="text-sm font-semibold text-blue-600"><i class="fa-regular fa-calendar-check mr-1"></i>${r.datetime}</p>
+          <p class="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 whitespace-pre-wrap">${r.reason}</p>
         `;
+
+        container.appendChild(card);
       });
-      historyEl.innerHTML = html;
-      historyEl.scrollTop = historyEl.scrollHeight;
-    })
-    .catch(err => {
-      historyEl.innerHTML = `<span style="font-size:0.75rem; color:red;">エラーが発生しました</span>`;
-    });
-  }
+    }
 
-  function sendChatMessage(recordId) {
-    const inputEl = document.getElementById(`msgInput_${recordId}`);
-    const message = inputEl.value.trim();
-    const userName = document.getElementById('name').value;
+    // 新規申請送信処理
+    function submitForm(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnFormSubmit');
+      btn.disabled = true;
+      btn.innerText = i18nData[currentLang].msgSending;
 
-    if (!message) return;
+      const params = new URLSearchParams({
+        action: 'addAttendance',
+        name: currentUser,
+        department: userDepartment,
+        type: document.getElementById('type').value,
+        datetime: document.getElementById('datetime').value,
+        reason: document.getElementById('reason').value
+      });
 
-    inputEl.disabled = true;
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        body: params
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(i18nData[currentLang].msgSuccessSend);
+        document.getElementById('attendanceForm').reset();
+        document.getElementById('name').value = currentUser;
+        document.getElementById('department').value = userDepartment;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i><span>${i18nData[currentLang].btnSubmit}</span>`;
+        switchTab('list');
+      })
+      .catch(err => {
+        alert("送信エラーが発生しました");
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i><span>${i18nData[currentLang].btnSubmit}</span>`;
+      });
+    }
 
-    const payload = new URLSearchParams();
-    payload.append('action', 'addMessage');
-    payload.append('recordId', recordId);
-    payload.append('sender', userName);
-    payload.append('role', isUserAdmin ? 'Manager' : 'Applicant');
-    payload.append('message', message);
+    // モーダル管理
+    function openChatModal(recId) {
+      currentActiveRecId = recId;
+      document.getElementById('chatRecId').innerText = recId;
+      const modal = document.getElementById('chatModal');
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      document.body.classList.add('modal-active');
+      loadChatMessages();
+    }
 
-    fetch(GAS_WEB_APP_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: payload.toString()
-    })
-    .then(res => res.json())
-    .then(data => {
-      inputEl.value = '';
-      inputEl.disabled = false;
-      loadChatMessages(recordId);
-      fetchRecords();
-    })
-    .catch(err => {
-      alert("メッセージの送信に失敗しました");
-      inputEl.disabled = false;
-    });
-  }
+    function closeChatModal() {
+      const modal = document.getElementById('chatModal');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      document.body.classList.remove('modal-active');
+      currentActiveRecId = null;
+    }
 
-  // 絞り込みロジック（期間指定対応・多言語データ保持版）
-  function filterList() {
-    const scope = document.getElementById('filterUserScope').value;
-    const startDateVal = document.getElementById('filterStartDate').value;
-    const endDateVal = document.getElementById('filterEndDate').value;
-    const selectedDept = document.getElementById('filterDept').value;
-    const currentUserName = document.getElementById('name').value;
+    // チャットメッセージ読み込み
+    function loadChatMessages() {
+      const box = document.getElementById('chatMessages');
+      box.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">読み込み中...</p>`;
 
-    const filtered = allRecords.filter(r => {
-      // ユーザー範囲の判定
-      if (scope === 'me' && r.name !== currentUserName) {
-        return false;
-      }
-
-      // 部署の判定
-      if (selectedDept && r.department !== selectedDept) {
-        return false;
-      }
-
-      // 期間の判定
-      if (startDateVal || endDateVal) {
-        if (!r.datetime) return false;
-        
-        // datetime文字列から日付（yyyy-MM-dd または yyyy/MM/dd）を抽出
-        const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
-        if (!dateMatches) return false;
-
-        // レコード内の最小日付・最大日付をタイムスタンプで取得
-        const recDates = dateMatches.map(d => new Date(d.replace(/-/g, '/')).getTime());
-        const recMinDate = Math.min(...recDates);
-        const recMaxDate = Math.max(...recDates);
-
-        if (startDateVal) {
-          const filterStart = new Date(startDateVal.replace(/-/g, '/') + ' 00:00:00').getTime();
-          if (recMaxDate < filterStart) return false;
+      fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(currentActiveRecId)}`)
+      .then(res => res.json())
+      .then(messages => {
+        box.innerHTML = '';
+        if (messages.length === 0) {
+          box.innerHTML = `<p class="text-center text-xs text-slate-400 py-4">メッセージはまだありません</p>`;
+          return;
         }
 
-        if (endDateVal) {
-          const filterEnd = new Date(endDateVal.replace(/-/g, '/') + ' 23:59:59').getTime();
-          if (recMinDate > filterEnd) return false;
-        }
-      }
+        messages.forEach(m => {
+          const isMe = m.sender === currentUser;
+          const msgDiv = document.createElement('div');
+          msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
 
-      return true;
-    });
+          msgDiv.innerHTML = `
+            <div class="text-[10px] text-slate-400 mb-0.5">${m.sender} - ${m.timestamp}</div>
+            <div class="max-w-[80%] rounded-xl px-3 py-2 text-xs shadow-sm ${isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-white text-slate-800 border border-slate-200 rounded-bl-none'}">
+              ${m.message}
+            </div>
+          `;
+          box.appendChild(msgDiv);
+        });
 
-    renderRecords(filtered.slice(0, 30));
-  }
+        box.scrollTop = box.scrollHeight;
+      });
+    }
 
-  // フィルター初期化処理
-  function clearFilter() {
-    document.getElementById('filterUserScope').value = 'me';
-    document.getElementById('filterStartDate').value = '';
-    document.getElementById('filterEndDate').value = '';
-    document.getElementById('filterDept').value = '';
-    filterList();
-  }
-</script>
+    // チャットメッセージ送信
+    function sendChatMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text || !currentActiveRecId) return;
 
+      const params = new URLSearchParams({
+        action: 'addMessage',
+        recordId: currentActiveRecId,
+        sender: currentUser,
+        message: text,
+        role: isUserAdmin ? '管理者' : '従業員'
+      });
+
+      input.value = '';
+
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        body: params
+      })
+      .then(res => res.json())
+      .then(data => {
+        loadChatMessages();
+      });
+    }
+  </script>
 </body>
 </html>
