@@ -1320,11 +1320,9 @@
         reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
       }
 
+      // ★備考の非表示対応（ここを空にします）
       let remarkHtml = '';
-      if (canAccessPrivateInfo && r.remark) {
-        remarkHtml = `<div class="list-reason" style="margin-top:2px;"><strong>${i18nData[currentLang].lblRemarkTitle}</strong> ${r.remark}</div>`;
-      }
-
+      
       let msgAreaHtml = '';
       if (canAccessPrivateInfo) {
         const count = r.msgCount || 0;
