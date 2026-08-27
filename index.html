@@ -761,7 +761,7 @@
       lblRemarkTitle: "備考:"
     },
     vi: {
-      authTitle: "Xác nhận danh tính",
+      authTitle: "Xác nhận / Authentication",
       authSub: "Vui lòng nhập Mã số nhân viên và Mật khẩu",
       lblEmpId: "Mã số nhân viên",
       lblPass: "Mật khẩu (4 số của tháng và ngày)",
@@ -1222,6 +1222,7 @@
     const payload = new URLSearchParams();
     payload.append('action', 'addAttendance');
     payload.append('name', name);
+    payload.append('empId', currentEmpId);
     payload.append('department', department);
     payload.append('type', type);
     payload.append('datetime', datetime);
