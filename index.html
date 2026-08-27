@@ -672,10 +672,12 @@
 </div>
 
 <script>
+  // 【重要】デプロイ後の新しいGASウェブアプリURLに更新してください
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxi4zgaCvxGtIbnEYuoOYBob1T1LTyrm1F9llB3KRSBad-gFBcDJ7v_9b3FnM3O_ZwIaA/exec";
 
   let currentLang = 'ja';
   let userDeptJa = '';
+  let currentEmpId = '';
   let allRecords = [];
   let isUserAdmin = false;
 
@@ -1008,10 +1010,11 @@
     .then(data => {
       if (data.success) {
         userDeptJa = data.department || '';
-        isUserAdmin = (data.isAdmin === true); // boolean型として明確に保持
+        currentEmpId = data.empId || empId;
+        isUserAdmin = (data.isAdmin === true); // サーバー定義を保持
+
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
-
         document.getElementById('loginUserInfo').innerText = `👤 ${data.userName}`;
 
         document.getElementById('authScreen').style.display = 'none';
@@ -1042,6 +1045,7 @@
     document.getElementById('loginBtn').innerText = i18nData[currentLang].btnLogin;
 
     userDeptJa = '';
+    currentEmpId = '';
     allRecords = [];
     isUserAdmin = false;
 
@@ -1261,7 +1265,7 @@
 
   function preloadRecords() {
     const currentUserName = document.getElementById('name').value.trim();
-    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
+    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&empId=${encodeURIComponent(currentEmpId)}`)
     .then(res => res.json())
     .then(data => {
       allRecords = data;
@@ -1274,7 +1278,7 @@
     container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
 
     const currentUserName = document.getElementById('name').value.trim();
-    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
+    fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&empId=${encodeURIComponent(currentEmpId)}`)
     .then(res => res.json())
     .then(data => {
       allRecords = data;
@@ -1311,8 +1315,8 @@
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
-      // 本人または管理者の場合のみ個人情報（理由・備考・メッセージ）を表示
-      const isOwner = (String(r.name).trim() === currentUserName);
+      // 本人か管理者であるか（サーバーからの `isOwner` フラグまたは `isUserAdmin` を使用）
+      const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
       const canAccessPrivateInfo = isOwner || isUserAdmin;
 
       let reasonHtml = '';
@@ -1392,7 +1396,7 @@
     const historyEl = document.getElementById(`msgHistory_${recordId}`);
     const currentUserName = document.getElementById('name').value.trim();
     
-    fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}`)
+    fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}&empName=${encodeURIComponent(currentUserName)}&empId=${encodeURIComponent(currentEmpId)}`)
     .then(res => res.json())
     .then(list => {
       if (!list || list.length === 0) {
