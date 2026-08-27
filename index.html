@@ -1008,7 +1008,7 @@
     .then(data => {
       if (data.success) {
         userDeptJa = data.department || '';
-        isUserAdmin = !!data.isAdmin;
+        isUserAdmin = (data.isAdmin === true); // boolean型として明確に保持
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
 
@@ -1115,7 +1115,7 @@
   }
 
   function calculatePaidLeaveCount() {
-    const userName = document.getElementById('name').value;
+    const userName = document.getElementById('name').value.trim();
     if (!userName || allRecords.length === 0) return;
 
     const today = new Date();
@@ -1140,7 +1140,7 @@
       const isFacApproved = !facStatus.includes("未") && !facStatus.includes("Pending") && (facStatus.includes("承認") || facStatus.includes("Approved"));
 
       if (isMgrApproved && isFacApproved) {
-        if (r.name === userName && (r.type === '有給' || r.type === '半休')) {
+        if (String(r.name).trim() === userName && (r.type === '有給' || r.type === '半休')) {
           const dateMatches = r.datetime.match(/\d{4}[\/-]\d{1,2}[\/-]\d{1,2}/g);
           if (dateMatches) {
             const recStart = new Date(dateMatches[0].replace(/-/g, '/'));
@@ -1260,7 +1260,7 @@
   }
 
   function preloadRecords() {
-    const currentUserName = document.getElementById('name').value;
+    const currentUserName = document.getElementById('name').value.trim();
     fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
     .then(res => res.json())
     .then(data => {
@@ -1273,7 +1273,7 @@
     const container = document.getElementById('recordsContainer');
     container.innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
 
-    const currentUserName = document.getElementById('name').value;
+    const currentUserName = document.getElementById('name').value.trim();
     fetch(`${GAS_WEB_APP_URL}?action=getRecords&empName=${encodeURIComponent(currentUserName)}&isAdmin=${isUserAdmin}`)
     .then(res => res.json())
     .then(data => {
@@ -1292,7 +1292,7 @@
       return;
     }
 
-    const currentUserName = document.getElementById('name').value;
+    const currentUserName = document.getElementById('name').value.trim();
 
     let html = '';
     records.forEach(r => {
@@ -1311,22 +1311,20 @@
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
-      const isOwner = (r.name === currentUserName);
+      // 本人または管理者の場合のみ個人情報（理由・備考・メッセージ）を表示
+      const isOwner = (String(r.name).trim() === currentUserName);
       const canAccessPrivateInfo = isOwner || isUserAdmin;
 
-      // 閲覧権限がある場合のみ理由を表示
       let reasonHtml = '';
       if (canAccessPrivateInfo && r.reason) {
         reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
       }
 
-      // 閲覧権限がある場合のみ備考を表示
       let remarkHtml = '';
       if (canAccessPrivateInfo && r.remark) {
         remarkHtml = `<div class="list-remark"><strong>${i18nData[currentLang].lblRemarkTitle}</strong> ${r.remark}</div>`;
       }
 
-      // 閲覧権限がある場合のみメッセージエリアを表示
       let msgAreaHtml = '';
       if (canAccessPrivateInfo) {
         const count = r.msgCount || 0;
@@ -1392,7 +1390,7 @@
 
   function loadChatMessages(recordId) {
     const historyEl = document.getElementById(`msgHistory_${recordId}`);
-    const currentUserName = document.getElementById('name').value;
+    const currentUserName = document.getElementById('name').value.trim();
     
     fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}`)
     .then(res => res.json())
@@ -1425,7 +1423,7 @@
   function sendChatMessage(recordId) {
     const inputEl = document.getElementById(`msgInput_${recordId}`);
     const message = inputEl.value.trim();
-    const userName = document.getElementById('name').value;
+    const userName = document.getElementById('name').value.trim();
 
     if (!message) return;
 
@@ -1460,10 +1458,10 @@
     const scope = document.getElementById('filterUserScope').value;
     const selectedDate = document.getElementById('filterDate').value;
     const selectedDept = document.getElementById('filterDept').value;
-    const currentUserName = document.getElementById('name').value;
+    const currentUserName = document.getElementById('name').value.trim();
 
     const filtered = allRecords.filter(r => {
-      if (scope === 'me' && r.name !== currentUserName) {
+      if (scope === 'me' && String(r.name).trim() !== currentUserName) {
         return false;
       }
 
