@@ -1011,7 +1011,7 @@
       if (data.success) {
         userDeptJa = data.department || '';
         currentEmpId = data.empId || empId;
-        isUserAdmin = (data.isAdmin === true); // サーバー定義を保持
+        isUserAdmin = (data.isAdmin === true);
 
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
@@ -1315,9 +1315,9 @@
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
-      // 本人か管理者であるか（サーバーからの `isOwner` フラグまたは `isUserAdmin` を使用）
+      // 【修正】本人のみ閲覧可能（他人および全員表示の他人のレコードでは理由・備考・メッセージ非表示）
       const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
-      const canAccessPrivateInfo = isOwner || isUserAdmin;
+      const canAccessPrivateInfo = isOwner;
 
       let reasonHtml = '';
       if (canAccessPrivateInfo && r.reason) {
