@@ -372,7 +372,7 @@
       line-height: 1.4;
     }
 
-    .list-reason {
+    .list-reason, .list-remark {
       margin-top: 4px;
       font-size: 0.8rem;
       color: #64748b;
@@ -612,7 +612,6 @@
           </div>
         </div>
 
-        <!-- 6. 備考欄（追加） -->
         <div class="form-group">
           <label data-i18n="lbl6Remark">6. 備考（任意）</label>
           <textarea id="remark" name="remark" rows="2" data-i18n-ph="phRemark" placeholder="追加の連絡事項があれば入力してください"></textarea>
@@ -695,7 +694,7 @@
       errAuthNet: "通信エラーが発生しました",
       tabSend: "勤怠送信",
       tabList: "連絡一覧",
-      formTitle: "村田岡原　勤怠連絡",
+      formTitle: "村田岡原 勤怠連絡",
       lbl1Name: "1. お名前",
       lbl2Dept: "2. あなたの工程",
       deptQAInspect: "QA外観検査",
@@ -1315,13 +1314,19 @@
       const isOwner = (r.name === currentUserName);
       const canAccessPrivateInfo = isOwner || isUserAdmin;
 
+      // 閲覧権限がある場合のみ理由を表示
       let reasonHtml = '';
       if (canAccessPrivateInfo && r.reason) {
         reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
       }
 
+      // 閲覧権限がある場合のみ備考を表示
       let remarkHtml = '';
-      
+      if (canAccessPrivateInfo && r.remark) {
+        remarkHtml = `<div class="list-remark"><strong>${i18nData[currentLang].lblRemarkTitle}</strong> ${r.remark}</div>`;
+      }
+
+      // 閲覧権限がある場合のみメッセージエリアを表示
       let msgAreaHtml = '';
       if (canAccessPrivateInfo) {
         const count = r.msgCount || 0;
