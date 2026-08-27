@@ -1011,7 +1011,7 @@
       if (data.success) {
         userDeptJa = data.department || '';
         currentEmpId = data.empId || empId;
-        isUserAdmin = (data.isAdmin === true);
+        isUserAdmin = (data.isAdmin === true); // サーバー定義を保持
 
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
@@ -1297,6 +1297,7 @@
     }
 
     const currentUserName = document.getElementById('name').value.trim();
+    const currentScope = document.getElementById('filterUserScope').value;
 
     let html = '';
     records.forEach(r => {
@@ -1315,9 +1316,10 @@
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
-      // 【修正】本人のみ閲覧可能（他人および全員表示の他人のレコードでは理由・備考・メッセージ非表示）
+      // 本人か管理者であるか（サーバーからの `isOwner` フラグまたは `isUserAdmin` を使用）
       const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
-      const canAccessPrivateInfo = isOwner;
+      // 「全員を表示」の際は、管理者であっても他人の理由・備考・メッセージは表示しない（本人のみ常に閲覧可）
+      const canAccessPrivateInfo = isOwner || (isUserAdmin && currentScope !== 'all');
 
       let reasonHtml = '';
       if (canAccessPrivateInfo && r.reason) {
