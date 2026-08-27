@@ -612,6 +612,12 @@
           </div>
         </div>
 
+        <!-- 6. 備考欄（追加） -->
+        <div class="form-group">
+          <label data-i18n="lbl6Remark">6. 備考（任意）</label>
+          <textarea id="remark" name="remark" rows="2" data-i18n-ph="phRemark" placeholder="追加の連絡事項があれば入力してください"></textarea>
+        </div>
+
         <button type="submit" class="submit-btn" id="submitBtn" data-i18n="btnSubmit">送信する</button>
       </form>
 
@@ -724,6 +730,8 @@
       reason3: "③ 私用",
       reason4: "④ その他",
       phReason: "理由を入力してください",
+      lbl6Remark: "6. 備考（任意）",
+      phRemark: "追加の連絡事項があれば入力してください",
       btnSubmit: "送信する",
       btnSending: "送信中...",
       msgSuccess: "送信完了！",
@@ -748,7 +756,8 @@
       btnMsgHasCount: "💬 メッセージあり ({count}件)",
       phMsgInput: "メッセージを入力...",
       btnMsgSend: "送信",
-      lblReasonTitle: "理由:"
+      lblReasonTitle: "理由:",
+      lblRemarkTitle: "備考:"
     },
     vi: {
       authTitle: "Xác nhận / Authentication",
@@ -799,6 +808,8 @@
       reason3: "③ Việc riêng",
       reason4: "④ Khác",
       phReason: "Nhập lý do chi tiết",
+      lbl6Remark: "6. Ghi chú (Không bắt buộc)",
+      phRemark: "Nhập thêm thông tin liên lạc nếu có",
       btnSubmit: "Gửi",
       btnSending: "Đang gửi...",
       msgSuccess: "Đã gửi thành công!",
@@ -823,7 +834,8 @@
       btnMsgHasCount: "💬 Có tin nhắn ({count})",
       phMsgInput: "Nhập tin nhắn...",
       btnMsgSend: "Gửi",
-      lblReasonTitle: "Lý do:"
+      lblReasonTitle: "Lý do:",
+      lblRemarkTitle: "Ghi chú:"
     },
     en: {
       authTitle: "Authentication",
@@ -874,6 +886,8 @@
       reason3: "③ Personal Matters",
       reason4: "④ Other",
       phReason: "Please enter your reason",
+      lbl6Remark: "6. Remarks (Optional)",
+      phRemark: "Enter additional notes if any",
       btnSubmit: "Submit",
       btnSending: "Submitting...",
       msgSuccess: "Submitted Successfully!",
@@ -898,7 +912,8 @@
       btnMsgHasCount: "💬 Messages ({count})",
       phMsgInput: "Type a message...",
       btnMsgSend: "Send",
-      lblReasonTitle: "Reason:"
+      lblReasonTitle: "Reason:",
+      lblRemarkTitle: "Remarks:"
     }
   };
 
@@ -1199,13 +1214,16 @@
       reason = otherDetail ? `その他: ${otherDetail}` : 'その他';
     }
 
+    const remark = document.getElementById('remark').value.trim();
+
     const payload = new URLSearchParams();
-    payload.append('action', 'addAttendance'); // アクション名を明示して追加
+    payload.append('action', 'addAttendance');
     payload.append('name', name);
     payload.append('department', department);
     payload.append('type', type);
     payload.append('datetime', datetime);
     payload.append('reason', reason);
+    payload.append('remark', remark);
 
     fetch(GAS_WEB_APP_URL, {
       method: 'POST',
@@ -1302,6 +1320,11 @@
         reasonHtml = `<div class="list-reason"><strong>${i18nData[currentLang].lblReasonTitle}</strong> ${r.reason}</div>`;
       }
 
+      let remarkHtml = '';
+      if (canAccessPrivateInfo && r.remark) {
+        remarkHtml = `<div class="list-reason" style="margin-top:2px;"><strong>${i18nData[currentLang].lblRemarkTitle}</strong> ${r.remark}</div>`;
+      }
+
       let msgAreaHtml = '';
       if (canAccessPrivateInfo) {
         const count = r.msgCount || 0;
@@ -1347,6 +1370,7 @@
             <strong>【${displayType}】</strong> ${r.datetime}
           </div>
           ${reasonHtml}
+          ${remarkHtml}
           ${msgAreaHtml}
         </div>
       `;
@@ -1364,7 +1388,6 @@
     }
   }
 
-  // チャットメッセージ取得（修正版：GAS側の返却キー message, timestamp に対応）
   function loadChatMessages(recordId) {
     const historyEl = document.getElementById(`msgHistory_${recordId}`);
     const currentUserName = document.getElementById('name').value;
@@ -1379,11 +1402,9 @@
       
       let html = '';
       list.forEach(m => {
-        // 送信者が自分であるか、あるいは role === 'Applicant'（申請者）かで吹き出しを切り替え
         const isSelf = (m.sender === currentUserName) || (m.role === 'Applicant' && !isUserAdmin);
         const cls = isSelf ? 'applicant' : 'manager';
         
-        // m.message と m.timestamp を使用
         html += `
           <div class="msg-item ${cls}">
             <div class="msg-meta">${m.sender || ''} • ${m.timestamp || ''}</div>
