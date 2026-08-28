@@ -1011,7 +1011,7 @@
       if (data.success) {
         userDeptJa = data.department || '';
         currentEmpId = data.empId || empId;
-        isUserAdmin = (data.isAdmin === true); // サーバー定義を保持
+        isUserAdmin = (data.isAdmin === true);
 
         document.getElementById('name').value = data.userName;
         document.getElementById('department').value = translateDept(userDeptJa, currentLang);
@@ -1316,9 +1316,6 @@
       const displayDept = translateDept(r.department, currentLang);
       const displayType = translateType(r.type, currentLang);
 
-      // 本人か管理者であるか（サーバーからの `isOwner` フラグまたは `isUserAdmin` を使用）
-      // 管理者は承認作業のため「全員を表示」でも引き続き理由・備考・メッセージを閲覧可能
-      // 一般社員は本人の記録以外の理由・備考・メッセージは閲覧不可（サーバー側でも遮断済み）
       const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
       const canAccessPrivateInfo = isOwner || isUserAdmin;
 
@@ -1409,6 +1406,7 @@
       
       let html = '';
       list.forEach(m => {
+        // 【修正】自分が送ったメッセージかどうかの判定を柔軟に（送信者名の一致、またはroleがApplicant等）
         const isSelf = (m.sender === currentUserName) || (m.role === 'Applicant' && !isUserAdmin);
         const cls = isSelf ? 'applicant' : 'manager';
         
