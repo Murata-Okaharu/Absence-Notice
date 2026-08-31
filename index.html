@@ -955,7 +955,6 @@
     return (key && i18nData[lang][key]) ? i18nData[lang][key] : deptJa;
   }
 
-  // 【修正】「全員を表示」タブの場合は「有給」「半休」「欠勤」を「休み」に変換
   function translateType(typeJa, lang, isScopeAll) {
     if (!typeJa) return typeJa;
     var trimmedType = typeJa.trim();
@@ -1029,6 +1028,9 @@
 
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
+        
+        // タブを初期位置（送信画面）に戻す
+        switchTab('form');
         preloadRecords();
         checkSameDay();
       } else {
@@ -1046,21 +1048,49 @@
     });
   }
 
+  // 【修正点】ログアウト処理時にすべてのデータと画面表示項目を完全に消去
   function logout() {
     if (!confirm(i18nData[currentLang].confirmLogout)) return;
 
+    // 認証入力フォームの消去
     document.getElementById('empIdInput').value = '';
     document.getElementById('passInput').value = '';
     document.getElementById('loginBtn').disabled = false;
     document.getElementById('loginBtn').innerText = i18nData[currentLang].btnLogin;
 
+    // グローバル変数の完全削除
     userDeptJa = '';
     currentEmpId = '';
     allRecords = [];
     isUserAdmin = false;
 
-    resetForm();
+    // ユーザー情報の表示解除
+    document.getElementById('loginUserInfo').innerText = '';
 
+    // 勤怠入力フォームの完全消去
+    document.getElementById('name').value = '';
+    document.getElementById('department').value = '';
+    document.getElementById('attendanceForm').reset();
+    document.getElementById('paidLeaveInfo').style.display = 'none';
+    document.getElementById('paidLeaveCount').innerText = '0';
+
+    // 連絡一覧リスト・フィルター条件の完全消去
+    document.getElementById('filterUserScope').value = 'me';
+    document.getElementById('filterDate').value = '';
+    document.getElementById('filterDept').value = '';
+    document.getElementById('recordsContainer').innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
+
+    // 画面状態の初期化
+    document.getElementById('attendanceForm').style.display = 'block';
+    document.getElementById('successMessage').style.display = 'none';
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerText = i18nData[currentLang].btnSubmit;
+    submitBtn.disabled = false;
+    document.getElementById('startDate').valueAsDate = new Date();
+    toggleDateInput('date');
+    toggleOtherReason(false);
+
+    // 本人確認画面に戻す
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('authScreen').style.display = 'block';
   }
@@ -1255,13 +1285,16 @@
     });
   });
 
+  // 【修正点】ログイン中の名前・部署を安全に引き継ぎつつ再入力用にクリア
   function resetForm() {
     const savedName = document.getElementById('name').value;
     
     document.getElementById('attendanceForm').reset();
     
-    document.getElementById('name').value = savedName;
-    document.getElementById('department').value = translateDept(userDeptJa, currentLang);
+    if (savedName) {
+      document.getElementById('name').value = savedName;
+      document.getElementById('department').value = translateDept(userDeptJa, currentLang);
+    }
 
     document.getElementById('attendanceForm').style.display = 'block';
     document.getElementById('successMessage').style.display = 'none';
