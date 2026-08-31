@@ -718,6 +718,7 @@
       typeLate: "遅刻",
       typeEarly: "早退",
       typeOut: "中抜け",
+      typeRest: "休み",
       lbl4Date: "4. 日付・時間",
       hintDateRange: "※1日のみの場合は終了日を空欄にしてください",
       msgSameDayNotice: "⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。",
@@ -796,6 +797,7 @@
       typeLate: "Đi muộn",
       typeEarly: "Về sớm",
       typeOut: "Vắng giữa giờ",
+      typeRest: "Nghỉ",
       lbl4Date: "4. Ngày / Giờ",
       hintDateRange: "※ Nếu nghỉ 1 ngày, để trống ngày kết thúc",
       msgSameDayNotice: "⚠️ Về nguyên tắc, phải đăng ký và được duyệt trước. Trường hợp đăng ký trong ngày, ngoài việc gửi vào hệ thống này, vui lòng LIÊN HỆ TRỰC TIẾP với người quản lý.",
@@ -874,6 +876,7 @@
       typeLate: "Late Arrival",
       typeEarly: "Early Leave",
       typeOut: "Temporary Out",
+      typeRest: "Off",
       lbl4Date: "4. Date & Time",
       hintDateRange: "※ Leave end date blank for single-day requests",
       msgSameDayNotice: "⚠️ Prior application and approval are required in principle. For same-day requests, please CONTACT YOUR MANAGER DIRECTLY in addition to submitting this form.",
@@ -952,9 +955,16 @@
     return (key && i18nData[lang][key]) ? i18nData[lang][key] : deptJa;
   }
 
-  function translateType(typeJa, lang) {
+  // 【修正】「全員を表示」タブの場合は「有給」「半休」「欠勤」を「休み」に変換
+  function translateType(typeJa, lang, isScopeAll) {
     if (!typeJa) return typeJa;
-    const key = typeKeyMap[typeJa.trim()];
+    var trimmedType = typeJa.trim();
+    
+    if (isScopeAll && (trimmedType === "有給" || trimmedType === "半休" || trimmedType === "欠勤")) {
+      return i18nData[lang].typeRest || "休み";
+    }
+
+    const key = typeKeyMap[trimmedType];
     return (key && i18nData[lang][key]) ? i18nData[lang][key] : typeJa;
   }
 
@@ -1290,6 +1300,47 @@
     });
   }
 
+  function filterList() {
+    const scope = document.getElementById('filterUserScope').value;
+    const filterDateVal = document.getElementById('filterDate').value;
+    const filterDeptVal = document.getElementById('filterDept').value;
+    const currentUserName = document.getElementById('name').value.trim();
+
+    let filtered = allRecords.filter(r => {
+      // 本人制限フィルタ
+      if (scope === 'me') {
+        const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
+        if (!isOwner) return false;
+      }
+
+      // 日付フィルタ
+      if (filterDateVal) {
+        const targetDateStr = filterDateVal.replace(/-/g, '/');
+        if (!r.datetime || !r.datetime.includes(targetDateStr)) {
+          return false;
+        }
+      }
+
+      // 工程フィルタ
+      if (filterDeptVal) {
+        if (String(r.department).trim() !== filterDeptVal.trim()) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    renderRecords(filtered);
+  }
+
+  function clearFilter() {
+    document.getElementById('filterUserScope').value = 'me';
+    document.getElementById('filterDate').value = '';
+    document.getElementById('filterDept').value = '';
+    filterList();
+  }
+
   function renderRecords(records) {
     const container = document.getElementById('recordsContainer');
     if (!records || records.length === 0) {
@@ -1298,6 +1349,7 @@
     }
 
     const currentUserName = document.getElementById('name').value.trim();
+    const isScopeAll = (document.getElementById('filterUserScope').value === 'all');
 
     let html = '';
     records.forEach(r => {
@@ -1314,7 +1366,7 @@
       const facText = isFacApproved ? i18nData[currentLang].facOk : i18nData[currentLang].facNg;
 
       const displayDept = translateDept(r.department, currentLang);
-      const displayType = translateType(r.type, currentLang);
+      const displayType = translateType(r.type, currentLang, isScopeAll);
 
       const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
       const canAccessPrivateInfo = isOwner || isUserAdmin;
@@ -1371,7 +1423,7 @@
             </div>
           </div>
           <div class="list-detail">
-            <strong>【${displayType}】</strong> ${r.datetime}
+            <strong>${displayType}</strong> (${r.datetime})
           </div>
           ${reasonHtml}
           ${remarkHtml}
@@ -1379,11 +1431,14 @@
         </div>
       `;
     });
+
     container.innerHTML = html;
   }
 
   function toggleMessageBox(recordId) {
     const box = document.getElementById(`msgBox_${recordId}`);
+    if (!box) return;
+
     if (box.style.display === 'block') {
       box.style.display = 'none';
     } else {
@@ -1393,53 +1448,58 @@
   }
 
   function loadChatMessages(recordId) {
-    const historyEl = document.getElementById(`msgHistory_${recordId}`);
+    const historyBox = document.getElementById(`msgHistory_${recordId}`);
+    if (!historyBox) return;
+
     const currentUserName = document.getElementById('name').value.trim();
-    
+
     fetch(`${GAS_WEB_APP_URL}?action=getMessages&recordId=${encodeURIComponent(recordId)}&empName=${encodeURIComponent(currentUserName)}&empId=${encodeURIComponent(currentEmpId)}`)
     .then(res => res.json())
-    .then(list => {
-      if (!list || list.length === 0) {
-        historyEl.innerHTML = `<span style="font-size:0.75rem; color:#94a3b8;">メッセージはありません</span>`;
+    .then(messages => {
+      if (!messages || messages.length === 0) {
+        historyBox.innerHTML = '<span style="font-size:0.75rem; color:#94a3b8; text-align:center; display:block;">メッセージはありません</span>';
         return;
       }
-      
-      let html = '';
-      list.forEach(m => {
-        // 【修正】自分が送ったメッセージかどうかの判定を柔軟に（送信者名の一致、またはroleがApplicant等）
-        const isSelf = (m.sender === currentUserName) || (m.role === 'Applicant' && !isUserAdmin);
-        const cls = isSelf ? 'applicant' : 'manager';
-        
-        html += `
-          <div class="msg-item ${cls}">
-            <div class="msg-meta">${m.sender || ''} • ${m.timestamp || ''}</div>
-            <div>${m.message || ''}</div>
+
+      let mHtml = '';
+      messages.forEach(m => {
+        const isApplicant = (m.role === 'applicant' || m.sender === currentUserName);
+        const cssClass = isApplicant ? 'applicant' : 'manager';
+
+        mHtml += `
+          <div class="msg-item ${cssClass}">
+            <div class="msg-meta">${m.sender} (${m.timestamp})</div>
+            <div>${m.message}</div>
           </div>
         `;
       });
-      historyEl.innerHTML = html;
-      historyEl.scrollTop = historyEl.scrollHeight;
+
+      historyBox.innerHTML = mHtml;
+      historyBox.scrollTop = historyBox.scrollHeight;
     })
     .catch(err => {
-      historyEl.innerHTML = `<span style="font-size:0.75rem; color:red;">エラーが発生しました</span>`;
+      historyBox.innerHTML = '<span style="font-size:0.75rem; color:red;">取得失敗</span>';
     });
   }
 
   function sendChatMessage(recordId) {
     const inputEl = document.getElementById(`msgInput_${recordId}`);
-    const message = inputEl.value.trim();
-    const userName = document.getElementById('name').value.trim();
+    if (!inputEl) return;
 
-    if (!message) return;
+    const text = inputEl.value.trim();
+    if (!text) return;
 
-    inputEl.disabled = true;
+    const senderName = document.getElementById('name').value.trim();
+    const role = isUserAdmin ? 'manager' : 'applicant';
+
+    inputEl.value = '';
 
     const payload = new URLSearchParams();
     payload.append('action', 'addMessage');
     payload.append('recordId', recordId);
-    payload.append('sender', userName);
-    payload.append('role', isUserAdmin ? 'Manager' : 'Applicant');
-    payload.append('message', message);
+    payload.append('sender', senderName);
+    payload.append('message', text);
+    payload.append('role', role);
 
     fetch(GAS_WEB_APP_URL, {
       method: 'POST',
@@ -1448,49 +1508,21 @@
     })
     .then(res => res.json())
     .then(data => {
-      inputEl.value = '';
-      inputEl.disabled = false;
       loadChatMessages(recordId);
-      fetchRecords();
+      
+      const rec = allRecords.find(r => r.id === recordId);
+      if (rec) {
+        rec.msgCount = (rec.msgCount || 0) + 1;
+        const btnTextEl = document.getElementById(`msgBtnText_${recordId}`);
+        if (btnTextEl) {
+          btnTextEl.innerText = i18nData[currentLang].btnMsgHasCount.replace('{count}', rec.msgCount);
+        }
+      }
     })
     .catch(err => {
-      alert("メッセージの送信に失敗しました");
-      inputEl.disabled = false;
+      alert("メッセージ送信に失敗しました");
     });
-  }
-
-  function filterList() {
-    const scope = document.getElementById('filterUserScope').value;
-    const selectedDate = document.getElementById('filterDate').value;
-    const selectedDept = document.getElementById('filterDept').value;
-    const currentUserName = document.getElementById('name').value.trim();
-
-    const filtered = allRecords.filter(r => {
-      if (scope === 'me' && String(r.name).trim() !== currentUserName) {
-        return false;
-      }
-
-      let matchDate = true;
-      if (selectedDate && r.datetime) {
-        const formattedTargetDate = r.datetime.replace(/\//g, '-');
-        matchDate = formattedTargetDate.includes(selectedDate);
-      }
-
-      const matchDept = !selectedDept || r.department === selectedDept;
-
-      return matchDate && matchDept;
-    });
-
-    renderRecords(filtered.slice(0, 30));
-  }
-
-  function clearFilter() {
-    document.getElementById('filterUserScope').value = 'me';
-    document.getElementById('filterDate').value = '';
-    document.getElementById('filterDept').value = '';
-    filterList();
   }
 </script>
-
 </body>
 </html>
