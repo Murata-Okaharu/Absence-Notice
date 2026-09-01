@@ -578,7 +578,8 @@
             <input type="datetime-local" id="targetDateTime" name="targetDateTime" onchange="checkSameDay()">
           </div>
 
-          <div id="sameDayWarning" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ef4444; background-color: #fef2f2; border-radius: 8px; color: #dc2626; font-size: 0.85rem; font-weight: bold;">
+          <!-- 常時表示する注意事項 -->
+          <div id="sameDayWarning" style="margin-top: 10px; padding: 10px; border: 1px solid #ef4444; background-color: #fef2f2; border-radius: 8px; color: #dc2626; font-size: 0.85rem; font-weight: bold;">
             <span data-i18n="msgSameDayNotice">⚠️ 原則として事前申請と承認が必要です。当日申請を行う場合は、本システムの送信に加え、必ず直接責任者へご連絡ください。</span>
           </div>
 
@@ -1029,7 +1030,6 @@
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
         
-        // タブを初期位置（送信画面）に戻す
         switchTab('form');
         preloadRecords();
         checkSameDay();
@@ -1048,39 +1048,32 @@
     });
   }
 
-  // 【修正点】ログアウト処理時にすべてのデータと画面表示項目を完全に消去
   function logout() {
     if (!confirm(i18nData[currentLang].confirmLogout)) return;
 
-    // 認証入力フォームの消去
     document.getElementById('empIdInput').value = '';
     document.getElementById('passInput').value = '';
     document.getElementById('loginBtn').disabled = false;
     document.getElementById('loginBtn').innerText = i18nData[currentLang].btnLogin;
 
-    // グローバル変数の完全削除
     userDeptJa = '';
     currentEmpId = '';
     allRecords = [];
     isUserAdmin = false;
 
-    // ユーザー情報の表示解除
     document.getElementById('loginUserInfo').innerText = '';
 
-    // 勤怠入力フォームの完全消去
     document.getElementById('name').value = '';
     document.getElementById('department').value = '';
     document.getElementById('attendanceForm').reset();
     document.getElementById('paidLeaveInfo').style.display = 'none';
     document.getElementById('paidLeaveCount').innerText = '0';
 
-    // 連絡一覧リスト・フィルター条件の完全消去
     document.getElementById('filterUserScope').value = 'me';
     document.getElementById('filterDate').value = '';
     document.getElementById('filterDept').value = '';
     document.getElementById('recordsContainer').innerHTML = `<p style="text-align: center; color: #64748b; padding: 20px;">${i18nData[currentLang].msgLoading}</p>`;
 
-    // 画面状態の初期化
     document.getElementById('attendanceForm').style.display = 'block';
     document.getElementById('successMessage').style.display = 'none';
     const submitBtn = document.getElementById('submitBtn');
@@ -1090,7 +1083,6 @@
     toggleDateInput('date');
     toggleOtherReason(false);
 
-    // 本人確認画面に戻す
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('authScreen').style.display = 'block';
   }
@@ -1114,30 +1106,11 @@
     }
   }
 
+  // 【修正箇所】日付や申請種類に関わらず注意書きを常時表示
   function checkSameDay() {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-
-    const type = document.querySelector('input[name="type"]:checked')?.value || '';
-    let selectedDateStr = '';
-
-    if (type === '有給' || type === '欠勤') {
-      selectedDateStr = document.getElementById('startDate').value;
-    } else if (type === '半休') {
-      selectedDateStr = document.getElementById('halfDate').value;
-    } else if (type === '遅刻' || type === '早退' || type === '中抜け') {
-      const val = document.getElementById('targetDateTime').value;
-      if (val) selectedDateStr = val.split('T')[0];
-    }
-
     const warningEl = document.getElementById('sameDayWarning');
-    if (selectedDateStr && selectedDateStr === todayStr) {
+    if (warningEl) {
       warningEl.style.display = 'block';
-    } else {
-      warningEl.style.display = 'none';
     }
   }
 
@@ -1285,7 +1258,6 @@
     });
   });
 
-  // 【修正点】ログイン中の名前・部署を安全に引き継ぎつつ再入力用にクリア
   function resetForm() {
     const savedName = document.getElementById('name').value;
     
@@ -1340,13 +1312,11 @@
     const currentUserName = document.getElementById('name').value.trim();
 
     let filtered = allRecords.filter(r => {
-      // 本人制限フィルタ
       if (scope === 'me') {
         const isOwner = r.isOwner || (String(r.name).trim() === currentUserName);
         if (!isOwner) return false;
       }
 
-      // 日付フィルタ
       if (filterDateVal) {
         const targetDateStr = filterDateVal.replace(/-/g, '/');
         if (!r.datetime || !r.datetime.includes(targetDateStr)) {
@@ -1354,7 +1324,6 @@
         }
       }
 
-      // 工程フィルタ
       if (filterDeptVal) {
         if (String(r.department).trim() !== filterDeptVal.trim()) {
           return false;
